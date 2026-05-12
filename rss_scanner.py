@@ -282,15 +282,27 @@ Supported URL types:
   - Playlist: ?list=PLAYLIST_ID
         """
     )
-    parser.add_argument("url", help="YouTube channel, video, or playlist URL")
+    parser.add_argument("url", nargs="?", help="YouTube channel, video, or playlist URL")
     parser.add_argument("-q", "--quiet", action="store_true", help="Only output the RSS URL")
     parser.add_argument("-c", "--copy", action="store_true", help="Copy RSS URL to clipboard")
     parser.add_argument("-a", "--atom", action="store_true", help="Output generated Atom RSS feed")
     
     args = parser.parse_args()
     
+    # Prompt for URL if not provided
+    url = args.url
+    if not url:
+        url = input("Enter YouTube channel URL: ").strip()
+        if not url:
+            print("Error: No URL provided", file=sys.stderr)
+            sys.exit(1)
+    
+    # Add https:// if missing
+    if not url.startswith("http"):
+        url = "https://" + url
+    
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count = get_rss_feed(args.url)
+        youtube_rss, channel_id, channel_name, atom_feed, video_count = get_rss_feed(url)
         
         if args.atom:
             # Output generated Atom feed directly
