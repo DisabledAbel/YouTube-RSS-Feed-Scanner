@@ -8,7 +8,8 @@ from flask import Flask, request, Response, send_from_directory, jsonify
 import rss_scanner
 import urllib.parse
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, template_folder='api')
+cache = Cache(app, config={'CACHE_TYPE': 'Simple', 'CACHE_DEFAULT_TIMEOUT': 300})
 
 
 @app.route('/')
@@ -64,6 +65,37 @@ def get_feed(channel_url=None):
         
         if atom_feed:
             # Fix channel name in feed
+            if channel_name:
+                atom_feed = atom_feed.replace(
+                    f">{channel_id or channel_id} - YouTube Videos",
+                    f">{channel_name} - YouTube Videos"
+                )
+                atom_feed = atom_feed.replace(
+                    f"<name>{channel_id or channel_id}</name>",
+                    f"<name>{channel_name}</name>"
+                )
+            return Response(atom_feed, mimetype='application/xml')
+        else:
+            return Response("No videos found", status=404)
+    except Exception as e:
+        return Response(f"Error: {str(e)}", status=500)
+
+
+@app.route('/feed/<path:channel>', methods=['GET'])
+@cache.cached(timeout=300, key_prefix='feed_')
+def get_cached_feed(channel):
+    """Cached RSS feed endpoint - updates every 5 minutes."""
+    # Clean channel from URL
+    channel = urllib.parse.unquote(channel)
+    if channel.startswith('http'):
+        full_url = channel
+    else:
+        full_url = f"https://{channel}"
+    
+    try:
+        _, channel_id, channel_name, atom_feed, video_count, _ = rss_scanner.get_rss_feed(full_url)
+        
+        if atom_feed:
             if channel_name:
                 atom_feed = atom_feed.replace(
                     f">{channel_id or channel_id} - YouTube Videos",
