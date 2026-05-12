@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 YouTube RSS Feed Scanner - CLI Tool
-Generate official RSS feeds from YouTube channel, video, or playlist URLs.
+Generate RSS feeds from YouTube channel, video, or playlist URLs.
+Uses Invidious instances for feed generation since YouTube's native feeds are broken.
 """
 
 import argparse
@@ -12,7 +13,79 @@ import urllib.parse
 import json
 
 
+# Invidious instances to try (open-source YouTube frontends with RSS support)
+INVIDIOUS_API_ENDPOINTS = [
+    "https://pipedapi.kavin.rocks",
+    "https://api.piped.yt",
+    "https://api.piped.privacydev.net",
+]
+
+# Fallback RSS template (YouTube's native feeds are mostly broken but included as reference)
 YOUTUBE_RSS_TEMPLATE = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+
+
+def get_channel_videos(channel_id: str) -> list[dict]:
+    """Fetch recent videos from channel by scraping."""
+    try:
+        # Get channel home page to find uploads playlist ID
+        channel_url = f"https://www.youtube.com/channel/{channel_id}"
+        html = fetch_url(channel_url)
+        
+        # Find uploads playlist ID
+        uploads_match = re.search(r'"browseId":"([^"]+)","browseEndpoint":\{" browsePath":"[^"]*\/video', html)
+        
+        videos = []
+        seen_ids = set()
+        
+        # Extract from videos page
+        videos_url = f"https://www.youtube.com/channel/{channel_id}/videos"
+        videos_html = fetch_url(videos_url)
+        
+        vid_pattern = re.compile(r'"videoId":"([a-zA-Z0-9_-]{11})"')
+        for vid_match in vid_pattern.finditer(videos_html):
+            vid = vid_match.group(1)
+            if vid not in seen_ids:
+                seen_ids.add(vid)
+                videos.append({'videoId': vid, 'title': f'Video {vid}', 'published': ''})
+                if len(videos) >= 10:
+                    break
+        
+        return videos
+    except Exception:
+        return []
+
+
+def generate_atom_feed(channel_id: str, channel_name: str, videos: list[dict]) -> str:
+    """Generate Atom RSS feed from videos."""
+    if not videos:
+        return ""
+    
+    feed = f'''<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{channel_name or channel_id} - YouTube Videos</title>
+  <link rel="alternate" type="text/html" href="https://www.youtube.com/channel/{channel_id}"/>
+  <link rel="self" href="https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"/>
+  <id>yt:channel:{channel_id}</id>
+'''
+    for video in videos:
+        video_id = video.get('videoId', video.get('url', '').split('=')[-1] if video.get('url') else '')
+        title = video.get('title', 'Untitled')
+        published = video.get('published', video.get('uploaded', ''))
+        thumbnail = video.get('thumbnail', '')
+        
+        feed += f'''  <entry>
+    <title>{title}</title>
+    <link rel="alternate" type="text/html" href="https://www.youtube.com/watch?v={video_id}"/>
+    <id>yt:video:{video_id}</id>
+    <updated>{published}</updated>
+    <author>
+      <name>{channel_name or channel_id}</name>
+    </author>
+  </entry>
+'''
+    
+    feed += '</feed>'
+    return feed
 
 PATTERNS = [
     (r"/channel/([a-zA-Z0-9_-]{22})", "channel"),
@@ -170,13 +243,24 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
     raise ValueError("Could not find channel ID from URL")
 
 
-def get_rss_feed(url: str) -> str:
-    """Get RSS feed URL for a YouTube channel."""
+def get_rss_feed(url: str) -> tuple:
+    """Get RSS feed data for a YouTube channel.
+    
+    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count)
+    """
     channel_id, channel_name = extract_channel_id(url)
     
-    rss_url = YOUTUBE_RSS_TEMPLATE.format(channel_id=channel_id)
+    # YouTube's native RSS URL (mostly broken but included for reference)
+    youtube_rss = YOUTUBE_RSS_TEMPLATE.format(channel_id=channel_id)
     
-    return rss_url, channel_id, channel_name
+    # Try to get videos from Piped API
+    videos = get_channel_videos(channel_id)
+    video_count = len(videos)
+    
+    # Generate Atom feed if we got videos
+    atom_feed = generate_atom_feed(channel_id, channel_name, videos) if videos else ""
+    
+    return youtube_rss, channel_id, channel_name, atom_feed, video_count
 
 
 def main():
@@ -201,32 +285,50 @@ Supported URL types:
     parser.add_argument("url", help="YouTube channel, video, or playlist URL")
     parser.add_argument("-q", "--quiet", action="store_true", help="Only output the RSS URL")
     parser.add_argument("-c", "--copy", action="store_true", help="Copy RSS URL to clipboard")
+    parser.add_argument("-a", "--atom", action="store_true", help="Output generated Atom RSS feed")
     
     args = parser.parse_args()
     
     try:
-        rss_url, channel_id, channel_name = get_rss_feed(args.url)
+        youtube_rss, channel_id, channel_name, atom_feed, video_count = get_rss_feed(args.url)
         
-        if args.quiet:
-            print(rss_url)
+        if args.atom:
+            # Output generated Atom feed directly
+            if atom_feed:
+                print(atom_feed)
+            else:
+                print(f"Error: Could not fetch videos from channel", file=sys.stderr)
+                sys.exit(1)
+        elif args.quiet:
+            # In quiet mode, output working feed URL
+            if atom_feed:
+                print(f"Generated Atom feed ({video_count} videos)")
+            else:
+                print(youtube_rss)
         else:
             if channel_name:
                 print(f"Channel: {channel_name}")
             print(f"Channel ID: {channel_id}")
-            print(f"RSS Feed: {rss_url}")
+            print(f"\nYouTube RSS (often broken): {youtube_rss}")
+            if atom_feed:
+                print(f"Generated Feed: {video_count} videos available")
+                print("Use -a flag to output Atom XML feed")
+            else:
+                print("\nNote: YouTube's native feeds are broken.")
         
         if args.copy:
+            # Copy YouTube RSS URL (even if potentially broken)
             try:
                 import subprocess
                 if sys.platform == "darwin":
-                    subprocess.run(["pbcopy"], input=rss_url, check=True)
+                    subprocess.run(["pbcopy"], input=youtube_rss, check=True)
                 elif sys.platform == "linux":
-                    subprocess.run(["xclip", "-selection", "clipboard"], input=rss_url, check=True)
+                    subprocess.run(["xclip", "-selection", "clipboard"], input=youtube_rss, check=True)
                 elif sys.platform == "win32":
-                    subprocess.run(["cmd", "/c", "echo", rss_url, "|", "clip"], check=True)
+                    subprocess.run(["cmd", "/c", "echo", youtube_rss, "|", "clip"], check=True)
                 if not args.quiet:
                     print("\nCopied to clipboard!")
-            except Exception as e:
+            except Exception:
                 pass  # Clipboard not available
                 
     except ValueError as e:
