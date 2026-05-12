@@ -246,21 +246,34 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
 def get_rss_feed(url: str) -> tuple:
     """Get RSS feed data for a YouTube channel.
     
-    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count)
+    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss)
     """
     channel_id, channel_name = extract_channel_id(url)
     
     # YouTube's native RSS URL (mostly broken but included for reference)
     youtube_rss = YOUTUBE_RSS_TEMPLATE.format(channel_id=channel_id)
     
-    # Try to get videos from Piped API
+    # Try to get videos from YouTube channel page
     videos = get_channel_videos(channel_id)
     video_count = len(videos)
     
     # Generate Atom feed if we got videos
     atom_feed = generate_atom_feed(channel_id, channel_name, videos) if videos else ""
     
-    return youtube_rss, channel_id, channel_name, atom_feed, video_count
+    # Check for working Invidious RSS feed
+    invidious_rss = None
+    for instance in INVIDIOUS_API_ENDPOINTS:
+        try:
+            test_url = f"{instance}/channel/{channel_id}"
+            req = urllib.request.Request(test_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.status == 200:
+                    invidious_rss = f"{instance}/feed/channel/{channel_id}"
+                    break
+        except Exception:
+            continue
+    
+    return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss
 
 
 def main():
@@ -302,7 +315,7 @@ Supported URL types:
         url = "https://" + url
     
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count = get_rss_feed(url)
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss = get_rss_feed(url)
         
         if args.atom:
             # Output generated Atom feed directly
@@ -322,6 +335,8 @@ Supported URL types:
                 print(f"Channel: {channel_name}")
             print(f"Channel ID: {channel_id}")
             print(f"\nYouTube RSS (often broken): {youtube_rss}")
+            if invidious_rss:
+                print(f"Invidious RSS: {invidious_rss}")
             if atom_feed:
                 print(f"Generated Feed: {video_count} videos available")
                 print("Use -a flag to output Atom XML feed")
