@@ -28,32 +28,40 @@ python -m api.app
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Web UI |
+| `/` | GET | Web UI - Enter YouTube channel URL |
 | `/feed/<channel_url>` | GET | RSS feed (cached 5 min) |
-| `/feed/<channel_url>` | GET | RSS feed XML (cached) |
 | `/api/feed` | POST | JSON API |
 
-## Usage
+### `/api/feed` (POST)
 
-### Web UI
-Open the deployed URL and enter a YouTube channel URL.
+Generate RSS feed via API.
 
-### API
+**Request:**
+```json
+{
+  "url": "https://www.youtube.com/@ChannelName"
+}
+```
+
+**Response:**
+```json
+{
+  "youtube_rss": "https://www.youtube.com/feeds/videos.xml?channel_id=...",
+  "channel_id": "UC...",
+  "channel_name": "Channel Name",
+  "atom_feed": "<?xml version...",
+  "video_count": 10
+}
+```
+
+### Example Usage
 
 ```bash
 # Get feed via API
 curl -X POST https://your-app.vercel.app/api/feed \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://www.youtube.com/@ChannelName"}'
+  -d '{"url":"https://www.youtube.com/@Beardmeatsfood"}'
 ```
-
-### RSS Reader
-Subscribe to:
-```
-https://your-app.vercel.app/feed/https://www.youtube.com/@ChannelName
-```
-
-The feed updates every 5 minutes.
 
 ## CLI Usage
 
