@@ -304,11 +304,7 @@
             { regex: /\/channel\/([a-zA-Z0-9_-]{22})/, type: 'channel' },
             { regex: /\/c\/([a-zA-Z0-9_-]+)/, type: 'custom' },
             { regex: /\/user\/([a-zA-Z0-9_-]+)/, type: 'user' },
-            { regex: /\/@([a-zA-Z0-9_-]+)/, type: 'handle' },
-            { regex: /\/watch\?v=([a-zA-Z0-9_-]{11})/, type: 'video' },
-            { regex: /youtu\.be\/([a-zA-Z0-9_-]{11})/, type: 'short' },
-            { regex: /\/live\/([a-zA-Z0-9_-]+)/, type: 'live' },
-            { regex: /\/playlist\?list=([a-zA-Z0-9_-]+)/, type: 'playlist' }
+            { regex: /\/@([a-zA-Z0-9_-]+)/, type: 'handle' }
         ];
 
         async function extractChannelId(url) {
@@ -329,115 +325,23 @@
             }
 
             if ((urlType === 'custom' || urlType === 'user' || urlType === 'handle') && channelId) {
-                // Try using CORS proxy
                 try {
-                    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-                    const response = await fetch(proxyUrl);
+                    const response = await fetch(url, {
+                        headers: { 'Accept-Language': 'en-US,en;q=0.9' }
+                    });
                     
                     if (response.ok) {
-                        const data = await response.text();
-                        try {
-                            const json = JSON.parse(data);
-                            if (json.contents) {
-                                const html = json.contents;
-                                const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
-                                if (channelIdMatch) {
-                                    return { channelId: channelIdMatch[1], channelName: null };
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Parse error:', e);
+                        const html = await response.text();
+                        const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
+                        if (channelIdMatch) {
+                            return { channelId: channelIdMatch[1], channelName: null };
                         }
                     }
                 } catch (e) {
-                    console.error('CORS proxy error:', e);
+                    console.error('Error fetching channel page:', e);
                 }
-
+                
                 return await fetchChannelIdByUsername(channelId);
-            }
-
-            // Handle video URLs (watch?v= or youtu.be/)
-            if ((urlType === 'video' || urlType === 'short') && channelId) {
-                try {
-                    const videoUrl = 'https://www.youtube.com/watch?v=' + channelId;
-                    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(videoUrl);
-                    const response = await fetch(proxyUrl);
-                    
-                    if (response.ok) {
-                        const data = await response.text();
-                        try {
-                            const json = JSON.parse(data);
-                            if (json.contents) {
-                                const html = json.contents;
-                                const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
-                                if (channelIdMatch) {
-                                    const nameMatch = html.match(/"channelName":"([^"]+)"/);
-                                    return { channelId: channelIdMatch[1], channelName: nameMatch ? nameMatch[1] : null };
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Parse error:', e);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Video fetch error:', e);
-                }
-            }
-
-            // Handle live stream URLs
-            if (urlType === 'live' && channelId) {
-                try {
-                    const liveUrl = 'https://www.youtube.com/live/' + channelId;
-                    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(liveUrl);
-                    const response = await fetch(proxyUrl);
-                    
-                    if (response.ok) {
-                        const data = await response.text();
-                        try {
-                            const json = JSON.parse(data);
-                            if (json.contents) {
-                                const html = json.contents;
-                                const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
-                                if (channelIdMatch) {
-                                    const nameMatch = html.match(/"channelName":"([^"]+)"/);
-                                    return { channelId: channelIdMatch[1], channelName: nameMatch ? nameMatch[1] : null };
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Parse error:', e);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Live fetch error:', e);
-                }
-            }
-
-            // Handle playlist URLs
-            if (urlType === 'playlist' && channelId) {
-                try {
-                    const playlistUrl = 'https://www.youtube.com/playlist?list=' + channelId;
-                    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(playlistUrl);
-                    const response = await fetch(proxyUrl);
-                    
-                    if (response.ok) {
-                        const data = await response.text();
-                        try {
-                            const json = JSON.parse(data);
-                            if (json.contents) {
-                                const html = json.contents;
-                                const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
-                                if (channelIdMatch) {
-                                    const nameMatch = html.match(/"channelName":"([^"]+)"/);
-                                    return { channelId: channelIdMatch[1], channelName: nameMatch ? nameMatch[1] : null };
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Parse error:', e);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Playlist fetch error:', e);
-                }
             }
 
             return null;
@@ -446,26 +350,15 @@
         async function fetchChannelIdByUsername(username) {
             try {
                 const channelUrl = 'https://www.youtube.com/@' + username;
-                
-                // Use CORS proxy
-                const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(channelUrl);
-                const response = await fetch(proxyUrl);
+                const response = await fetch(channelUrl);
                 
                 if (response.ok) {
-                    const data = await response.text();
-                    try {
-                        const json = JSON.parse(data);
-                        if (json.contents) {
-                            const html = json.contents;
-                            const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
-                            if (channelIdMatch) {
-                                const nameMatch = html.match(/"channelName":"([^"]+)"/);
-                                const channelName = nameMatch ? nameMatch[1] : '@' + username;
-                                return { channelId: channelIdMatch[1], channelName };
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Parse error:', e);
+                    const html = await response.text();
+                    const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
+                    if (channelIdMatch) {
+                        const nameMatch = html.match(/"channelName":"([^"]+)"/);
+                        const channelName = nameMatch ? nameMatch[1] : '@' + username;
+                        return { channelId: channelIdMatch[1], channelName };
                     }
                 }
             } catch (e) {
