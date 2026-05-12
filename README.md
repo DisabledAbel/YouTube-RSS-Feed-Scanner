@@ -6,6 +6,9 @@ A Python CLI tool that generates RSS feeds from YouTube channel URLs.
 
 ```bash
 git clone https://github.com/DisabledAbel/YouTube-RSS-Feed-Scanner.git
+```
+then:
+```bash
 cd YouTube-RSS-Feed-Scanner
 ```
 
