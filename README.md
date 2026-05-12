@@ -79,13 +79,6 @@ npm install
 ```bash
 npm start
 ```
-
-If the project supports development mode:
-
-```bash
-npm run dev
-```
-
 ---
 
 ## Usage
