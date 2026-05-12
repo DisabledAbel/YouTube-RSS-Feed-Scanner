@@ -332,7 +332,13 @@
                     
                     if (response.ok) {
                         const html = await response.text();
-                        const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
+                        // Try externalId first (YouTube returns this for @username URLs)
+                        let channelIdMatch = html.match(/"externalId":"([a-zA-Z0-9_-]{22})"/);
+                        if (channelIdMatch) {
+                            return { channelId: channelIdMatch[1], channelName: null };
+                        }
+                        // Fallback to channelId
+                        channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
                         if (channelIdMatch) {
                             return { channelId: channelIdMatch[1], channelName: null };
                         }
@@ -354,7 +360,15 @@
                 
                 if (response.ok) {
                     const html = await response.text();
-                    const channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
+                    // Try externalId first (YouTube returns this for @username URLs)
+                    let channelIdMatch = html.match(/"externalId":"([a-zA-Z0-9_-]{22})"/);
+                    if (channelIdMatch) {
+                        const nameMatch = html.match(/"channelName":"([^"]+)"/);
+                        const channelName = nameMatch ? nameMatch[1] : '@' + username;
+                        return { channelId: channelIdMatch[1], channelName };
+                    }
+                    // Fallback to channelId
+                    channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
                     if (channelIdMatch) {
                         const nameMatch = html.match(/"channelName":"([^"]+)"/);
                         const channelName = nameMatch ? nameMatch[1] : '@' + username;
