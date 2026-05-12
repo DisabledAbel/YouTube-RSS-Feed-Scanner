@@ -1,15 +1,5 @@
 # YouTube RSS Feed Scanner
 
-<p align="center">
-  Scan YouTube channels, playlists, and feeds using RSS
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/github/license/DisabledAbel/YouTube-RSS-Feed-Scanner">
-  <img src="https://img.shields.io/github/stars/DisabledAbel/YouTube-RSS-Feed-Scanner">
-  <img src="https://img.shields.io/github/issues/DisabledAbel/YouTube-RSS-Feed-Scanner">
-</p>
-
 ---
 
 ## Features
@@ -160,23 +150,6 @@ Track uploads in:
 
 ---
 
-### Automation
-
-Trigger workflows using:
-
-- yt-dlp
-- Webhooks
-- Custom scripts
-- Download pipelines
-
----
-
-### IPTV Systems
-
-Use YouTube feeds inside IPTV and media systems.
-
----
-
 ### Archiving
 
 Monitor and archive newly uploaded videos automatically.
@@ -206,9 +179,3 @@ If you find a bug or want a feature added, open an issue.
 This project is not affiliated with or endorsed by YouTube or Google.
 
 Users are responsible for complying with YouTube’s Terms of Service.
-
----
-
-# License
-
-MIT License
