@@ -180,21 +180,9 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
         except Exception as e:
             print(f"noembed error: {e}", file=sys.stderr)
     
-    # Try noembed for @username URLs
+    # Try noembed for @username URLs (alternative when direct fetch has issues)
     if url_type == "handle":
-        # Fallback: direct HTML fetch first (more reliable than noembed)
-        try:
-            html = fetch_url(url)
-            channel_match = re.search(r'"externalId":"([^"]+)"', html)
-            if channel_match:
-                return channel_match.group(1), None
-            channel_match = re.search(r'"channelId":"([a-zA-Z0-9_-]{22})"', html)
-            if channel_match:
-                return channel_match.group(1), None
-        except Exception as e:
-            print(f"direct fetch error: {e}", file=sys.stderr)
-        
-        # Then try noembed as secondary
+        # Try noembed first
         try:
             noembed = fetch_noembed(url)
             author_url = noembed.get('author_url', '')
@@ -205,6 +193,18 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
                     return channel_match.group(1), noembed.get('title', '')
         except Exception as e:
             print(f"noembed error: {e}", file=sys.stderr)
+        
+        # Fallback: direct HTML fetch 
+        try:
+            html = fetch_url(url)
+            channel_match = re.search(r'"externalId":"([^"]+)"', html)
+            if channel_match:
+                return channel_match.group(1), None
+            channel_match = re.search(r'"channelId":"([a-zA-Z0-9_-]{22})"', html)
+            if channel_match:
+                return channel_match.group(1), None
+        except Exception as e:
+            print(f"direct fetch error: {e}", file=sys.stderr)
     
     # Try direct fetch - works from server-side Python
     fetch_urls = []
