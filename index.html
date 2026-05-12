@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube RSS Scanner</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+        }
+        h1 { font-size: 28px; margin-bottom: 24px; text-align: center; color: #ff0000; }
+        .input-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 8px; color: #888; font-size: 14px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 1px solid #333;
+            border-radius: 12px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; }
+        
+        .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .preset-btn {
+            width: auto;
+            padding: 10px 14px;
+            font-size: 14px;
+            background: #222;
+            border: 1px solid #333;
+        }
+        
+        #result { margin-top: 20px; display: none; }
+        .channel-card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .channel-name { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .channel-id { color: #666; font-size: 13px; font-family: monospace; }
+        
+        .feed-section { margin-top: 16px; }
+        .feed-label { color: #888; font-size: 12px; margin-bottom: 6px; }
+        .feed-link {
+            word-break: break-all;
+            padding: 12px;
+            background: #111;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #4fc3f7;
+            font-family: monospace;
+        }
+        .copy-btn {
+            width: auto;
+            padding: 8px 12px;
+            font-size: 12px;
+            background: #333;
+            margin-top: 6px;
+        }
+        
+        .atom-section { margin-top: 16px; }
+        .atom-section details summary {
+            color: #888;
+            cursor: pointer;
+            padding: 12px;
+            background: #111;
+            border-radius: 8px;
+        }
+        .atom-section textarea {
+            width: 100%;
+            height: 250px;
+            margin-top: 8px;
+            padding: 12px;
+            background: #111;
+            color: #4fc3f7;
+            border: none;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        .error {
+            background: #3a1a1a;
+            color: #ff6b6b;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        
+        .note { font-size: 12px; color: #444; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>📺 YouTube RSS</h1>
+    
+    <div class="input-group">
+        <label>YouTube Channel URL or Handle</label>
+        <input type="text" id="channelInput" placeholder="@username or full URL" autocomplete="off">
+    </div>
+    
+    <div class="presets">
+        <button class="preset-btn" onclick="setPreset('@Beardmeatsfood')">@Beardmeatsfood</button>
+        <button class="preset-btn" onclick="setPreset('@MKBHD')">@MKBHD</button>
+        <button class="preset-btn" onclick="setPreset('@MrBeast')">@MrBeast</button>
+        <button class="preset-btn" onclick="setPreset('@LinusTechTips')">@LinusTechTips</button>
+    </div>
+    
+    <button id="getBtn" onclick="getFeed()">Get RSS Feed</button>
+    
+    <div id="result"></div>
+    
+    <p class="note">Works directly in browser • No server needed</p>
+    
+    <script>
+        // Invidious instances (public, CORS-enabled)
+        const INVIDIOUS_INSTANCES = [
+            'https://invidious.privacydev.net',
+            'https://iv.ggtyler.dev',
+            'https://inv.bp.projectsegfau.lt'
+        ];
+        
+        let currentInstance = INVIDIOUS_INSTANCES[0];
+        
+        async function testInstance(url) {
+            for (const inst of INVIDIOUS_INSTANCES) {
+                try {
+                    const r = await fetch(inst + '/api/v1/stats', { method: 'GET' });
+                    if (r.ok) return inst;
+                } catch {}
+            }
+            return null;
+        }
+        
+        function setPreset(ch) {
+            document.getElementById('channelInput').value = ch;
+        }
+        
+        async function searchChannel(query) {
+            // Clean the query
+            query = query.trim();
+            if (query.startsWith('http')) {
+                const u = new URL(query);
+                const path = u.pathname;
+                if (path.includes('/@')) {
+                    query = '@' + path.split('/@')[1].replace('/', '');
+                } else if (path.includes('/c/')) {
+                    query = path.split('/c/')[1].replace('/', '');
+                } else if (path.includes('/channel/')) {
+                    query = path.split('/channel/')[1].replace('/', '');
+                }
+            }
+            query = query.replace('@', '').replace(' ', '');
+            
+            // Try to fetch from current instance
+            const apiUrl = currentInstance + '/api/v1/search?q=' + encodeURIComponent(query) + '&type=channels';
+            const r = await fetch(apiUrl);
+            const data = await r.json();
+            
+            if (data && data.length > 0) {
+                return {
+                    channelId: data[0].channel_id,
+                    channelName: data[0].author
+                };
+            }
+            return null;
+        }
+        
+        async function getChannelVideos(channelId) {
+            const apiUrl = currentInstance + '/api/v1/videos/' + channelId + '/latest';
+            const r = await fetch(apiUrl);
+            return await r.json();
+        }
+        
+        function generateAtomFeed(channelName, channelId, videos) {
+            if (!videos || videos.length === 0) return '';
+            
+            let feed = `<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>${channelName} - YouTube Videos</title>
+  <link rel="alternate" type="text/html" href="https://www.youtube.com/channel/${channelId}"/>
+  <link rel="self" href="https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}"/>
+  <id>yt:channel:${channelId}</id>
+`;
+            
+            for (const v of videos) {
+                feed += `  <entry>
+    <title>${escapeXml(v.title)}</title>
+    <link rel="alternate" type="text/html" href="https://www.youtube.com/watch?v=${v.videoId}"/>
+    <id>yt:video:${v.videoId}</id>
+    <updated>${v.published ? v.published : ''}</updated>
+    <author>
+      <name>${escapeXml(channelName)}</name>
+    </author>
+  </entry>
+`;
+            }
+            
+            feed += '</feed>';
+            return feed;
+        }
+        
+        function escapeXml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;')
+                   .replace(/</g, '&lt;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/"/g, '&quot;');
+        }
+        
+        async function getFeed() {
+            const input = document.getElementById('channelInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('getBtn');
+            
+            if (!input) {
+                resultDiv.innerHTML = '<div class="error">Please enter a channel URL or @handle</div>';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            resultDiv.style.display = 'none';
+            
+            try {
+                // Find working instance
+                currentInstance = await testInstance() || INVIDIOUS_INSTANCES[0];
+                
+                // Search for channel
+                const channel = await searchChannel(input);
+                
+                if (!channel) {
+                    throw new Error('Channel not found');
+                }
+                
+                // Get videos
+                const videosData = await getChannelVideos(channel.channelId);
+                const videos = videosData.videos || [];
+                
+                // Generate feeds
+                const atomFeed = generateAtomFeed(channel.channelName, channel.channelId, videos);
+                const youtubeRss = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + channel.channelId;
+                
+                // Show result
+                let html = '<div class="channel-card">';
+                html += '<div class="channel-name">' + channel.channelName + '</div>';
+                html += '<div class="channel-id">Channel ID: ' + channel.channelId + '</div>';
+                html += '</div>';
+                
+                html += '<div class="feed-section">';
+                html += '<div class="feed-label">YouTube RSS (often broken)</div>';
+                html += '<div class="feed-link">' + youtubeRss + '</div>';
+                html += '<button class="copy-btn" onclick="copyText(this)">Copy</button>';
+                html += '</div>';
+                
+                html += '<div class="feed-section">';
+                html += '<div class="feed-label">Invidious RSS (working)</div>';
+                html += '<div class="feed-link">' + currentInstance + '/feed/channel/' + channel.channelId + '</div>';
+                html += '<button class="copy-btn" onclick="copyText(this)">Copy</button>';
+                html += '</div>';
+                
+                if (atomFeed) {
+                    html += '<div class="atom-section">';
+                    html += '<details open>';
+                    html += '<summary>Atom Feed (' + videos.length + ' videos)</summary>';
+                    html += '<textarea readonly>' + atomFeed + '</textarea>';
+                    html += '<button class="copy-btn" onclick="copyAtom(this)">Copy XML</button>';
+                    html += '</details>';
+                    html += '</div>';
+                }
+                
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Get RSS Feed';
+            resultDiv.style.display = 'block';
+        }
+        
+        function copyText(btn) {
+            const text = btn.previousElementSibling.textContent;
+            navigator.clipboard.writeText(text);
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 1500);
+        }
+        
+        function copyAtom(btn) {
+            const text = btn.previousElementSibling.value;
+            navigator.clipboard.writeText(text);
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy XML', 1500);
+        }
+        
+        // Enter key
+        document.getElementById('channelInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') getFeed();
+        });
+    </script>
+</body>
+</html>
