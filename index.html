@@ -325,6 +325,13 @@
             }
 
             if ((urlType === 'custom' || urlType === 'user' || urlType === 'handle') && channelId) {
+                // Try Invidious first (CORS-friendly)
+                const invidiousResult = await getChannelFromInvidious(channelId);
+                if (invidiousResult) {
+                    return invidiousResult;
+                }
+                
+                // Fallback: direct fetch (may fail due to CORS)
                 try {
                     const response = await fetch(url, {
                         headers: { 'Accept-Language': 'en-US,en;q=0.9' }
@@ -353,33 +360,32 @@
             return null;
         }
 
-        async function fetchChannelIdByUsername(username) {
+        // Invidious instances for browser-friendly API (CORS-enabled)
+        const INVIDIOUS_API = 'https://invidious.projectsegfau.lt/api/v1';
+        
+        async function getChannelFromInvidious(handle) {
             try {
-                const channelUrl = 'https://www.youtube.com/@' + username;
-                const response = await fetch(channelUrl);
-                
+                // Search for channel by handle
+                const searchUrl = INVIDIOUS_API + '/search?q=' + encodeURIComponent(handle) + '&type=channels';
+                const response = await fetch(searchUrl);
                 if (response.ok) {
-                    const html = await response.text();
-                    // Try externalId first (YouTube returns this for @username URLs)
-                    let channelIdMatch = html.match(/"externalId":"([a-zA-Z0-9_-]{22})"/);
-                    if (channelIdMatch) {
-                        const nameMatch = html.match(/"channelName":"([^"]+)"/);
-                        const channelName = nameMatch ? nameMatch[1] : '@' + username;
-                        return { channelId: channelIdMatch[1], channelName };
-                    }
-                    // Fallback to channelId
-                    channelIdMatch = html.match(/"channelId":"([a-zA-Z0-9_-]{22})"/);
-                    if (channelIdMatch) {
-                        const nameMatch = html.match(/"channelName":"([^"]+)"/);
-                        const channelName = nameMatch ? nameMatch[1] : '@' + username;
-                        return { channelId: channelIdMatch[1], channelName };
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        return {
+                            channelId: data[0].channel_id,
+                            channelName: data[0].author
+                        };
                     }
                 }
             } catch (e) {
-                console.error('Error fetching channel page:', e);
+                console.error('Invidious error:', e);
             }
-
             return null;
+        }
+
+        async function fetchChannelIdByUsername(username) {
+            // Try Invidious API (CORS-friendly)
+            return await getChannelFromInvidious(username);
         }
 
         async function getRssFeed(inputUrl) {
@@ -402,12 +408,16 @@
                 throw new Error('Could not find valid channel ID from the URL');
             }
 
-            const rssFeedUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + result.channelId;
-
+            // YouTube's native RSS feeds are mostly broken (return 401/404)
+            // We still provide it but marked as "often broken"
+            const nativeRssFeedUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + result.channelId;
+            
+            // Include channel ID for generating alternative feeds
             return {
-                rssFeedUrl,
+                rssFeedUrl: nativeRssFeedUrl,
                 channelId: result.channelId,
-                channelName: result.channelName
+                channelName: result.channelName,
+                note: 'Note: YouTube native RSS feeds are often broken. Use -a flag with CLI for Atom feed.'
             };
         }
 
