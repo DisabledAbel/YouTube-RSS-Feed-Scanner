@@ -4,11 +4,43 @@ YouTube RSS Feed Scanner - Web Server
 Serves generated RSS feeds at public URLs for RSS readers to subscribe to.
 """
 
-from flask import Flask, request, Response, redirect
+from flask import Flask, request, Response, redirect, send_from_directory
 import rss_scanner
 import urllib.parse
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
+
+
+@app.route('/')
+def index():
+    return send_from_directory('templates', 'index.html')
+
+
+@app.route('/api/feed', methods=['POST'])
+def api_feed():
+    """API endpoint for getting feed data."""
+    import json
+    data = request.get_json()
+    
+    if not data or 'url' not in data:
+        return Response(json.dumps({'error': 'Missing url parameter'}), mimetype='application/json')
+    
+    url = data['url']
+    if not url.startswith('http'):
+        url = 'https://' + url
+    
+    try:
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, _ = rss_scanner.get_rss_feed(url)
+        
+        return Response(json.dumps({
+            'youtube_rss': youtube_rss,
+            'channel_id': channel_id,
+            'channel_name': channel_name,
+            'atom_feed': atom_feed,
+            'video_count': video_count
+        }), mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({'error': str(e)}), mimetype='application/json')
 
 
 @app.route('/feed/')
@@ -46,26 +78,6 @@ def get_feed(channel_url=None):
             return Response("No videos found", status=404)
     except Exception as e:
         return Response(f"Error: {str(e)}", status=500)
-
-
-@app.route('/')
-def index():
-    """Home page with usage info."""
-    return """<!DOCTYPE html>
-<html>
-<head><title>YouTube RSS Feed Scanner</title></head>
-<body>
-<h1>YouTube RSS Feed Scanner</h1>
-<p>Subscribe to YouTube channel RSS feeds:</p>
-<pre>/feed/{channel_url}</pre>
-<p>Examples:</p>
-<ul>
-<li><a href="/feed/https://www.youtube.com/@Beardmeatsfood">/feed/https://www.youtube.com/@Beardmeatsfood</a></li>
-<li><a href="/feed/https://www.youtube.com/@GoogleDevelopers">/feed/https://www.youtube.com/@GoogleDevelopers</a></li>
-<li><a href="/feed/https://www.youtube.com/c/MarquesBrownlee">/feed/https://www.youtube.com/c/MarquesBrownlee</a></li>
-</ul>
-</body>
-</html>"""
 
 
 if __name__ == '__main__':
