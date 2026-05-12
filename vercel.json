@@ -1,7 +1,7 @@
 {
-  "buildCommand": "pip install -r requirements.txt",
+  "buildCommand": "uv pip install --system -r requirements.txt",
   "outputDirectory": ".",
-  "installCommand": "pip install -r requirements.txt",
+  "installCommand": "uv pip install --system -r requirements.txt",
   "framework": null,
   "routes": [
     {
