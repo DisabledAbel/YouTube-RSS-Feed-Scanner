@@ -40,14 +40,6 @@ This project makes it easy to:
 
 Get the project running in just a few minutes.
 
-## Requirements
-
-Before starting, make sure you have:
-
-- Node.js 18+
-- npm
-- Git
-
 ---
 
 ## 1. Clone the repository
