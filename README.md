@@ -72,7 +72,3 @@ Use -a flag to output Atom XML feed
 - YouTube's native RSS feeds (`youtube.com/feeds/...`) often return 401/404 errors
 - This tool generates working Atom RSS feeds by extracting video data from channel pages
 - Run with `-a` to get a usable feed for any RSS reader
-
-## License
-
-MIT
