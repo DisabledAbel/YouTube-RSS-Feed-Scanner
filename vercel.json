@@ -1,12 +1,23 @@
 {
   "buildCommand": "uv pip install --system -r requirements.txt",
-  "outputDirectory": ".",
+  "outputDirectory": "api",
   "installCommand": "uv pip install --system -r requirements.txt",
   "framework": null,
   "routes": [
     {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/app.py"
+    },
+    {
+      "src": "/feed/(.*)",
+      "dest": "/api/app.py"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/server.py"
+      "dest": "/api/app.py"
     }
   ]
 }
