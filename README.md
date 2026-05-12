@@ -1,15 +1,61 @@
 # YouTube RSS Feed Scanner
 
-A Python CLI tool that generates RSS feeds from YouTube channel URLs.
+A Python CLI tool that generates RSS feeds from YouTube channel URLs. Can be deployed to Vercel for web access.
 
-## Installation
+## Deployment
+
+### Vercel (Recommended)
 
 ```bash
-git clone https://github.com/DisabledAbel/YouTube-RSS-Feed-Scanner.git
-cd YouTube-RSS-Feed-Scanner
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
 ```
 
+Add the following environment variable in Vercel dashboard:
+- `PYTHONUNBUFFERED`: `1`
+
+### Local Development
+
+```bash
+pip install flask flask-caching
+python -m api.app
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Web UI |
+| `/feed/<channel_url>` | GET | RSS feed (cached 5 min) |
+| `/feed/<channel_url>` | GET | RSS feed XML (cached) |
+| `/api/feed` | POST | JSON API |
+
 ## Usage
+
+### Web UI
+Open the deployed URL and enter a YouTube channel URL.
+
+### API
+
+```bash
+# Get feed via API
+curl -X POST https://your-app.vercel.app/api/feed \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.youtube.com/@ChannelName"}'
+```
+
+### RSS Reader
+Subscribe to:
+```
+https://your-app.vercel.app/feed/https://www.youtube.com/@ChannelName
+```
+
+The feed updates every 5 minutes.
+
+## CLI Usage
 
 Run without arguments for interactive prompt:
 
