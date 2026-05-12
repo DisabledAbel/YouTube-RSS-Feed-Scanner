@@ -5,7 +5,6 @@ Serves generated RSS feeds at public URLs for RSS readers to subscribe to.
 """
 
 from flask import Flask, request, Response, send_from_directory, jsonify
-from flask_caching import Cache
 import rss_scanner
 import urllib.parse
 
