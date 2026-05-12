@@ -4,7 +4,7 @@ YouTube RSS Feed Scanner - Web Server
 Serves generated RSS feeds at public URLs for RSS readers to subscribe to.
 """
 
-from flask import Flask, request, Response, redirect, send_from_directory
+from flask import Flask, request, Response, send_from_directory
 import rss_scanner
 import urllib.parse
 
@@ -13,7 +13,7 @@ app = Flask(__name__, template_folder='templates')
 
 @app.route('/')
 def index():
-    return send_from_directory('templates', 'index.html')
+    return send_from_directory('.', 'index.html')
 
 
 @app.route('/api/feed', methods=['POST'])
@@ -23,7 +23,7 @@ def api_feed():
     data = request.get_json()
     
     if not data or 'url' not in data:
-        return Response(json.dumps({'error': 'Missing url parameter'}), mimetype='application/json')
+        return Response({'error': 'Missing url parameter'}, mimetype='application/json', status=400)
     
     url = data['url']
     if not url.startswith('http'):
@@ -40,7 +40,7 @@ def api_feed():
             'video_count': video_count
         }), mimetype='application/json')
     except Exception as e:
-        return Response(json.dumps({'error': str(e)}), mimetype='application/json')
+        return Response(json.dumps({'error': str(e)}), mimetype='application/json', status=500)
 
 
 @app.route('/feed/')
