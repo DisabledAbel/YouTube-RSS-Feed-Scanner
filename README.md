@@ -6,13 +6,19 @@ A Python CLI tool that generates RSS feeds from YouTube channel URLs.
 
 ```bash
 git clone https://github.com/DisabledAbel/YouTube-RSS-Feed-Scanner.git
-```
-then:
-```bash
 cd YouTube-RSS-Feed-Scanner
 ```
 
 ## Usage
+
+Run without arguments for interactive prompt:
+
+```bash
+python rss_scanner.py
+Enter YouTube channel URL: https://www.youtube.com/@ChannelName
+```
+
+Or pass URL directly:
 
 ```bash
 python rss_scanner.py "https://www.youtube.com/@ChannelName"
@@ -38,6 +44,9 @@ python rss_scanner.py "https://www.youtube.com/@ChannelName"
 ## Examples
 
 ```bash
+# Interactive mode (prompts for URL)
+python rss_scanner.py
+
 # Basic usage
 python rss_scanner.py "https://www.youtube.com/@GoogleDevelopers"
 
