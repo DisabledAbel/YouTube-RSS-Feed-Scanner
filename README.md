@@ -1,7 +1,5 @@
 # YouTube RSS Feed Scanner
 
----
-
 ## Features
 
 - Scan YouTube RSS feeds without the YouTube API
