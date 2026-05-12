@@ -5,11 +5,12 @@ Serves generated RSS feeds at public URLs for RSS readers to subscribe to.
 """
 
 from flask import Flask, request, Response, send_from_directory, jsonify
+from flask_caching import Cache
 import rss_scanner
 import urllib.parse
 
 app = Flask(__name__, template_folder='api')
-cache = Cache(app, config={'CACHE_TYPE': 'Simple', 'CACHE_DEFAULT_TIMEOUT': 300})
+cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
 
 
 @app.route('/')

@@ -73,12 +73,40 @@ npm start
 ```
 ---
 
-## Usage
+### `/api/feed` (POST)
 
 ### Scan a YouTube channel
 
 ```bash
 npm start "https://www.youtube.com/@LinusTechTips"
+```
+
+---
+
+### `/feed/<channel_url>` (GET)
+
+### Get RSS feed via URL path
+
+Access a YouTube channel's RSS feed by passing the channel URL in the path.
+
+**Important:** The `channel_url` parameter must be URL-encoded (percent-encoded) to avoid 404 errors.
+
+**Example with encoding:**
+
+```javascript
+// URL-encode the full YouTube URL
+const channelUrl = 'https://www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw';
+const encodedUrl = encodeURIComponent(channelUrl);
+// Result: https%3A%2F%2Fwww.youtube.com%2Fchannel%2FUCXuqSBlHAE6Xw-yeJA0Tunw
+
+// Use in request
+fetch(`/feed/${encodedUrl}`)
+```
+
+**Alternative (recommended):** Use query parameters to avoid encoding issues:
+
+```bash
+/feed?channel_url=https://www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw
 ```
 
 ---
