@@ -89,13 +89,27 @@
 ### Core Features
 
 1. **URL Input Parsing**
-   - Accept various YouTube channel URL formats:
-     - `https://www.youtube.com/@username`
-     - `https://www.youtube.com/channel/UC...`
-     - `https://www.youtube.com/c/channelname`
-     - `https://www.youtube.com/user/username`
-     - `https://www.youtube.com/@handle` (new format)
-   - Extract channel ID from URL using multiple methods
+   - Accept various YouTube URL formats:
+   
+   **Channel URLs:**
+   - `https://www.youtube.com/@username` (handle)
+   - `https://www.youtube.com/channel/UC...` (channel ID)
+   - `https://www.youtube.com/c/channelname` (custom URL)
+   - `https://www.youtube.com/user/username` (legacy user)
+   
+   **Video URLs:**
+   - `https://www.youtube.com/watch?v=VIDEO_ID` (standard video)
+   - `https://youtu.be/VIDEO_ID` (short URL)
+   
+   **Live Stream URLs:**
+   - `https://www.youtube.com/live/USERNAME` (live stream)
+   
+   **Playlist URLs:**
+   - `https://www.youtube.com/playlist?list=PLAYLIST_ID`
+   
+   **Non-Channel URL Handling:** For video URLs (`watch?v=`, `youtu.be/`), the app fetches the video page and extracts the uploader's channel ID from the page metadata. For live stream URLs, the app fetches the live stream page to get the channel ID. For playlist URLs, the app fetches the playlist page or the first video in the playlist to obtain the channel ID.
+   
+   The parsing logic is implemented in the `extractChannelId()` function (see URL Input Parsing section header in `index.html`).
 
 2. **RSS Feed Generation**
    - Generate official YouTube RSS feed URL format:
@@ -145,6 +159,10 @@
 - [ ] `/channel/UC...` format URL is parsed correctly
 - [ ] `/c/channelname` format URL is parsed correctly
 - [ ] `/user/username` format URL is parsed correctly
+- [ ] `watch?v=VIDEO_ID` format URL is parsed correctly
+- [ ] `youtu.be/VIDEO_ID` format URL is parsed correctly
+- [ ] `/live/USERNAME` format URL is parsed correctly
+- [ ] `playlist?list=PLAYLIST_ID` format URL is parsed correctly
 - [ ] Generated RSS feed URL is valid and accessible
 - [ ] Copy button copies URL to clipboard
 
@@ -153,5 +171,7 @@
 | Input | Expected Channel ID |
 |-------|---------------------|
 | `https://www.youtube.com/@GoogleDevelopers` | UC_x5go1Nu-17r9EBU11tHjQ |
-| `https://www.youtube.com/channel/UCwX6rVkqpqXMPXj-J2-I2g` | UCwX6rVkqpqXMPXj-J2-I2g |
 | `https://www.youtube.com/c/MarquesBrownlee` | UC-lHJZR3Gqxm24_Vj_AJ36A |
+| `https://www.youtube.com/watch?v=dQw4w9WgXcQ` | UCuAXFkgswAGT_LHkF5-I8RA |
+| `https://youtu.be/dQw4w9WgXcQ` | UCuAXFkgswAGT_LHkF5-I8RA |
+| `https://www.youtube.com/playlist?list=PL590L1qF-2kDbVW3VbDyDdUP8T5RI-3a3` | UC4FAjLVlWq7jZi4x3KzA1g |
