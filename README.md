@@ -1,128 +1,164 @@
 # YouTube RSS Feed Scanner
 
-A Python CLI tool that generates RSS feeds from YouTube channel URLs. Can be deployed to Vercel for web access.
+## Features
 
-## Deployment
+- Scan YouTube RSS feeds without the YouTube API
+- Detect newly uploaded videos
+- Parse channel and playlist feeds
+- Lightweight and fast
+- Works with:
+  - Channel URLs
+  - `@handles`
+  - Channel IDs
+  - Playlist URLs
+- JSON output support
+- Easy to self-host
+- GitHub Actions compatible
+- Perfect for:
+  - RSS readers
+  - IPTV systems
+  - Automation tools
+  - Archiving workflows
 
-### Vercel (Recommended)
+---
+
+## Why?
+
+YouTube still provides RSS feeds for channels and playlists, making it possible to track uploads without using the official API.
+
+This project makes it easy to:
+
+- Convert YouTube URLs into RSS feeds
+- Monitor channels for new uploads
+- Build automation around YouTube content
+- Avoid API quotas and API keys
+- Integrate YouTube feeds into custom workflows
+
+---
+
+# Run Locally
+
+Get the project running in just a few minutes.
+
+---
+
+## 1. Clone the repository
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
+git clone https://github.com/DisabledAbel/YouTube-RSS-Feed-Scanner.git
 ```
 
-Add the following environment variable in Vercel dashboard:
-- `PYTHONUNBUFFERED`: `1`
+---
 
-### Local Development
+## 2. Enter the project folder
 
 ```bash
-pip install flask flask-caching
-python -m api.app
+cd YouTube-RSS-Feed-Scanner
 ```
 
-## API Endpoints
+---
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Web UI - Enter YouTube channel URL |
-| `/feed/<channel_url>` | GET | RSS feed (cached 5 min) |
-| `/api/feed` | POST | JSON API |
+## 3. Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 4. Start the project
+
+```bash
+npm start
+```
+---
 
 ### `/api/feed` (POST)
 
-Generate RSS feed via API.
+### Scan a YouTube channel
 
-**Request:**
+```bash
+npm start "https://www.youtube.com/@LinusTechTips"
+```
+
+---
+
+### Scan a playlist
+
+```bash
+npm start "https://www.youtube.com/playlist?list=PLxxxxxxxx"
+```
+
+---
+
+### Output JSON
+
+```bash
+npm start --json
+```
+
+---
+
+## Example RSS Feed
+
+```text
+https://www.youtube.com/feeds/videos.xml?channel_id=UCxxxxxxxx
+```
+
+---
+
+## Example Output
+
 ```json
 {
-  "url": "https://www.youtube.com/@ChannelName"
+  "title": "New Video Title",
+  "videoId": "abc123",
+  "published": "2026-05-11T12:00:00Z",
+  "channel": "Example Channel"
 }
 ```
 
-**Response:**
-```json
-{
-  "youtube_rss": "https://www.youtube.com/feeds/videos.xml?channel_id=...",
-  "channel_id": "UC...",
-  "channel_name": "Channel Name",
-  "atom_feed": "<?xml version...",
-  "video_count": 10
-}
-```
+---
 
-### Example Usage
+## Use Cases
 
-```bash
-# Get feed via API
-curl -X POST https://your-app.vercel.app/api/feed \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://www.youtube.com/@Beardmeatsfood"}'
-```
+### RSS Readers
 
-## CLI Usage
+Track uploads in:
 
-Run without arguments for interactive prompt:
+- Feedly
+- FreshRSS
+- Miniflux
+- NewsBlur
 
-```bash
-python rss_scanner.py
-Enter YouTube channel URL: https://www.youtube.com/@ChannelName
-```
+---
 
-Or pass URL directly:
+### Archiving
 
-```bash
-python rss_scanner.py "https://www.youtube.com/@ChannelName"
-```
+Monitor and archive newly uploaded videos automatically.
 
-## Supported URL Types
+---
 
-- **Handle**: `https://www.youtube.com/@username`
-- **Custom**: `https://www.youtube.com/c/ChannelName`
-- **User**: `https://www.youtube.com/user/username`
-- **Channel**: `https://www.youtube.com/channel/UC...`
-- **Video**: `https://www.youtube.com/watch?v=...` or `https://youtu.be/...`
-- **Playlist**: `https://www.youtube.com/playlist?list=...`
+# Deployment
 
-## Options
+## Vercel
 
-| Flag | Description |
-|------|-------------|
-| `-q`, `--quiet` | Only output the RSS URL |
-| `-c`, `--copy` | Copy RSS URL to clipboard |
-| `-a`, `--atom` | Output generated Atom RSS feed |
+Deploy instantly with Vercel.
 
-## Examples
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import)
 
-```bash
-# Interactive mode (prompts for URL)
-python rss_scanner.py
+---
 
-# Basic usage
-python rss_scanner.py "https://www.youtube.com/@GoogleDevelopers"
+# Contributing
 
-# Get Atom feed for RSS readers
-python rss_scanner.py "https://www.youtube.com/@t3dotgg" -a
+Pull requests are welcome.
 
-# Quiet mode (for scripts)
-python rss_scanner.py "https://www.youtube.com/c/MarquesBrownlee" -q
-```
+If you find a bug or want a feature added, open an issue.
 
-## Output
+---
 
-```
-Channel ID: UC_x5XG1OV2P6uZZ5FSM9Ttw
+# Disclaimer
 
-YouTube RSS (often broken): https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
-Generated Feed: 10 videos available
-Use -a flag to output Atom XML feed
-```
+This project is not affiliated with or endorsed by YouTube or Google.
 
-## Notes
-
-- YouTube's native RSS feeds (`youtube.com/feeds/...`) often return 401/404 errors
-- This tool generates working Atom RSS feeds by extracting video data from channel pages
-- Run with `-a` to get a usable feed for any RSS reader
+Users are responsible for complying with YouTube’s Terms of Service.
