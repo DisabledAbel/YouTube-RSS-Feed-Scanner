@@ -146,33 +146,75 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: url })
                 });
-                
+
                 const data = await response.json();
-                
+
+                // Clear previous content
+                resultDiv.innerHTML = '';
+
                 if (data.error) {
-                    resultDiv.innerHTML = '<div class="error">' + data.error + '</div>';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.textContent = data.error;
+                    resultDiv.appendChild(errorDiv);
                 } else {
-                    let html = '<div class="channel-info">';
+                    // Channel info section
+                    const channelInfoDiv = document.createElement('div');
+                    channelInfoDiv.className = 'channel-info';
+
                     if (data.channel_name) {
-                        html += '<p><strong>Channel:</strong> ' + data.channel_name + '</p>';
+                        const namePara = document.createElement('p');
+                        const nameStrong = document.createElement('strong');
+                        nameStrong.textContent = 'Channel:';
+                        namePara.appendChild(nameStrong);
+                        namePara.appendChild(document.createTextNode(' ' + data.channel_name));
+                        channelInfoDiv.appendChild(namePara);
                     }
-                    html += '<p><strong>Channel ID:</strong> ' + data.channel_id + '</p>';
-                    html += '</div>';
-                    
-                    html += '<div class="feed-label">YouTube RSS (often broken):</div>';
-                    html += '<div class="feed-link">' + data.youtube_rss + '</div>';
-                    
+
+                    const idPara = document.createElement('p');
+                    const idStrong = document.createElement('strong');
+                    idStrong.textContent = 'Channel ID:';
+                    idPara.appendChild(idStrong);
+                    idPara.appendChild(document.createTextNode(' ' + data.channel_id));
+                    channelInfoDiv.appendChild(idPara);
+
+                    resultDiv.appendChild(channelInfoDiv);
+
+                    // YouTube RSS section
+                    const rssLabel = document.createElement('div');
+                    rssLabel.className = 'feed-label';
+                    rssLabel.textContent = 'YouTube RSS (often broken):';
+                    resultDiv.appendChild(rssLabel);
+
+                    const rssLink = document.createElement('div');
+                    rssLink.className = 'feed-link';
+                    rssLink.textContent = data.youtube_rss;
+                    resultDiv.appendChild(rssLink);
+
+                    // Atom feed section
                     if (data.atom_feed) {
-                        html += '<div class="atom-output">';
-                        html += '<div class="feed-label">Atom Feed (' + data.video_count + ' videos):</div>';
-                        html += '<textarea readonly>' + data.atom_feed + '</textarea>';
-                        html += '</div>';
+                        const atomOutputDiv = document.createElement('div');
+                        atomOutputDiv.className = 'atom-output';
+
+                        const atomLabel = document.createElement('div');
+                        atomLabel.className = 'feed-label';
+                        atomLabel.textContent = 'Atom Feed (' + data.video_count + ' videos):';
+                        atomOutputDiv.appendChild(atomLabel);
+
+                        const textarea = document.createElement('textarea');
+                        textarea.readOnly = true;
+                        textarea.value = data.atom_feed;
+                        atomOutputDiv.appendChild(textarea);
+
+                        resultDiv.appendChild(atomOutputDiv);
                     }
-                    
-                    resultDiv.innerHTML = html;
                 }
             } catch (e) {
-                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+                resultDiv.innerHTML = '';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = 'Error: ' + e.message;
+                resultDiv.appendChild(errorDiv);
             }
             
             btn.disabled = false;

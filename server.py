@@ -4,7 +4,7 @@ YouTube RSS Feed Scanner - Web Server
 Serves generated RSS feeds at public URLs for RSS readers to subscribe to.
 """
 
-from flask import Flask, request, Response, send_from_directory
+from flask import Flask, request, Response, send_from_directory, jsonify
 import rss_scanner
 import urllib.parse
 
@@ -21,9 +21,9 @@ def api_feed():
     """API endpoint for getting feed data."""
     import json
     data = request.get_json()
-    
+
     if not data or 'url' not in data:
-        return Response({'error': 'Missing url parameter'}, mimetype='application/json', status=400)
+        return jsonify({'error': 'Missing url parameter'}), 400
     
     url = data['url']
     if not url.startswith('http'):
