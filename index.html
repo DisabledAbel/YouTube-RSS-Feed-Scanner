@@ -269,13 +269,23 @@
                     }
 
                     if (data.discord) {
-                        html += '<div class="feed-row"><div class="feed-label">Discord Webhook:</div>';
+                        const discordRow = document.createElement('div');
+                        discordRow.className = 'feed-row';
+
+                        const discordLabel = document.createElement('div');
+                        discordLabel.className = 'feed-label';
+                        discordLabel.textContent = 'Discord Webhook:';
+                        discordRow.appendChild(discordLabel);
+
+                        const discordLink = document.createElement('div');
+                        discordLink.className = 'feed-link';
                         if (data.discord.ok) {
-                            html += '<div class="feed-link">Notification sent successfully (HTTP ' + data.discord.status + ').</div>';
+                            discordLink.textContent = 'Notification sent successfully (HTTP ' + data.discord.status + ').';
                         } else {
-                            html += '<div class="feed-link">Failed to send notification: ' + (data.discord.error || ('HTTP ' + data.discord.status)) + '</div>';
+                            discordLink.textContent = 'Failed to send notification: ' + (data.discord.error || ('HTTP ' + data.discord.status));
                         }
-                        html += '</div>';
+                        discordRow.appendChild(discordLink);
+                        resultDiv.appendChild(discordRow);
                     }
                 }
             } catch (e) {
