@@ -129,6 +129,10 @@
             Include API endpoints
         </label>
     </div>
+    <div class="input-group">
+        <label>Discord Webhook URL (optional)</label>
+        <input type="text" id="discordWebhookUrl" placeholder="https://discord.com/api/webhooks/...">
+    </div>
     
     <div id="result"></div>
     
@@ -188,7 +192,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         url: url,
-                        include_api_endpoints: document.getElementById('includeApiEndpoints').checked
+                        include_api_endpoints: document.getElementById('includeApiEndpoints').checked,
+                        discord_webhook_url: document.getElementById('discordWebhookUrl').value.trim()
                     })
                 });
                 
@@ -261,6 +266,16 @@
                         apiOutput.appendChild(jsonApiDiv);
 
                         resultDiv.appendChild(apiOutput);
+                    }
+
+                    if (data.discord) {
+                        html += '<div class="feed-row"><div class="feed-label">Discord Webhook:</div>';
+                        if (data.discord.ok) {
+                            html += '<div class="feed-link">Notification sent successfully (HTTP ' + data.discord.status + ').</div>';
+                        } else {
+                            html += '<div class="feed-link">Failed to send notification: ' + (data.discord.error || ('HTTP ' + data.discord.status)) + '</div>';
+                        }
+                        html += '</div>';
                     }
                 }
             } catch (e) {
