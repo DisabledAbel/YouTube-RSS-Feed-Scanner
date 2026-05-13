@@ -12,6 +12,7 @@
   - Channel IDs
   - Playlist URLs
 - JSON output support
+- Optional Discord webhook notifications
 - Easy to self-host
 - Perfect for:
   - RSS readers
@@ -71,12 +72,18 @@ npm start
 ```
 ---
 
-### `/api/feed` (POST)
+### `/api/feed` (GET or POST)
 
 ### Scan a YouTube channel
 
 ```bash
 npm start "https://www.youtube.com/@LinusTechTips"
+```
+
+### GET endpoint (works directly in browser)
+
+```text
+/api/feed?url=https://www.youtube.com/@LinusTechTips
 ```
 
 ---
@@ -127,6 +134,17 @@ npm start --json
 
 ```bash
 python rss_scanner.py "https://www.youtube.com/@LinusTechTips" --include-api-endpoints --base-url "https://your-domain.com"
+```
+
+### Send feed info to Discord webhook (web UI / API)
+
+Pass `discord_webhook_url` to `/api/feed` and the app will send a message to Discord with channel info and the generated RSS URL.
+
+```json
+{
+  "url": "https://www.youtube.com/@LinusTechTips",
+  "discord_webhook_url": "https://discord.com/api/webhooks/..."
+}
 ```
 
 ---

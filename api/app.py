@@ -8,6 +8,8 @@ from flask import Flask, request, Response, send_from_directory, jsonify
 from flask_caching import Cache
 import rss_scanner
 import urllib.parse
+import urllib.request
+import json
 
 app = Flask(__name__, template_folder='api')
 cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
@@ -18,16 +20,41 @@ def index():
     return send_from_directory('.', 'index.html')
 
 
-@app.route('/api/feed', methods=['POST'])
+@app.route('/api/feed', methods=['GET', 'POST'])
 def api_feed():
     """API endpoint for getting feed data."""
-    import json
-    data = request.get_json()
+    if request.method == 'GET':
+        url = request.args.get('url', '').strip()
+        include_api_endpoints = request.args.get('include_api_endpoints', 'false').lower() in ('true', '1', 'yes')
+        discord_webhook_url = request.args.get('discord_webhook_url', '').strip()
+        data = {
+            'url': url,
+            'include_api_endpoints': include_api_endpoints,
+            'discord_webhook_url': discord_webhook_url
+        }
+    else:
+        data = request.get_json(silent=True)
+        if data is None:
+            # Graceful fallback for non-JSON POST clients
+            form_url = request.form.get('url', '').strip()
+            data = {
+                'url': form_url,
+                'include_api_endpoints': request.form.get('include_api_endpoints', False),
+                'discord_webhook_url': request.form.get('discord_webhook_url', '').strip()
+            }
 
     if not data or 'url' not in data:
-        return jsonify({'error': 'Missing url parameter'}), 400
+        return jsonify({
+            'error': 'Missing url parameter',
+            'usage': {
+                'post_json': {'url': 'https://www.youtube.com/@channel', 'include_api_endpoints': False},
+                'get_query': '/api/feed?url=https://www.youtube.com/@channel'
+            }
+        }), 400
     
     url = data['url']
+    if not url:
+        return jsonify({'error': 'Missing url parameter'}), 400
     if not url.startswith('http'):
         url = 'https://' + url
     
@@ -49,6 +76,18 @@ def api_feed():
             include_api_endpoints=include_api_endpoints,
             base_url=base_url
         )
+
+        discord_result = None
+        discord_webhook_url = data.get('discord_webhook_url', '')
+        if discord_webhook_url:
+            discord_result = send_to_discord(
+                webhook_url=discord_webhook_url.strip(),
+                youtube_rss=youtube_rss,
+                channel_id=channel_id,
+                channel_name=channel_name,
+                video_count=video_count,
+                api_endpoints=api_endpoints
+            )
         
         return Response(json.dumps({
             'youtube_rss': youtube_rss,
@@ -56,10 +95,49 @@ def api_feed():
             'channel_name': channel_name,
             'atom_feed': atom_feed,
             'video_count': video_count,
-            'api_endpoints': api_endpoints
+            'api_endpoints': api_endpoints,
+            'discord': discord_result
         }), mimetype='application/json')
     except Exception as e:
         return Response(json.dumps({'error': str(e)}), mimetype='application/json', status=500)
+
+
+def send_to_discord(webhook_url: str, youtube_rss: str, channel_id: str | None, channel_name: str | None, video_count: int, api_endpoints: dict | None):
+    """Send feed details to a Discord webhook if configured."""
+    if not webhook_url.startswith('https://discord.com/api/webhooks/'):
+        return {'ok': False, 'error': 'Invalid Discord webhook URL format'}
+
+    display_name = channel_name or channel_id or 'Unknown Channel'
+    lines = [
+        f"**Channel:** {display_name}",
+        f"**Channel ID:** `{channel_id or 'unknown'}`",
+        f"**Videos Found:** {video_count}",
+        f"**YouTube RSS:** {youtube_rss}"
+    ]
+
+    if api_endpoints and api_endpoints.get('json_api'):
+        lines.append(f"**JSON API:** {api_endpoints['json_api']}")
+
+    payload = {
+        "username": "YouTube RSS Scanner",
+        "content": "🔔 New YouTube RSS feed connection configured\n" + "\n".join(lines)
+    }
+
+    req = urllib.request.Request(
+        webhook_url,
+        data=json.dumps(payload).encode('utf-8'),
+        headers={'Content-Type': 'application/json'},
+        method='POST'
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            status = response.status
+        if 200 <= status < 300:
+            return {'ok': True, 'status': status}
+        return {'ok': False, 'status': status}
+    except Exception as webhook_error:
+        return {'ok': False, 'error': str(webhook_error)}
 
 
 @app.route('/feed/')
