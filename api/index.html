@@ -59,10 +59,6 @@
             font-size: 13px;
             color: #4fc3f7;
         }
-        .feed-link a {
-            color: #4fc3f7;
-            text-decoration: underline;
-        }
         .feed-row { margin-bottom: 10px; }
         .copy-btn {
             margin-top: 6px;
@@ -172,33 +168,9 @@
 
         async function copyText(text) {
             try {
-                if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(text);
-                    showToast('Copied ✓');
-                    return;
-                }
-            } catch (err) {
-                // Fall back to legacy copy path below.
-            }
-
-            try {
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-9999px';
-                textArea.style.top = '-9999px';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                const successful = document.execCommand('copy');
-                document.body.removeChild(textArea);
-
-                if (successful) {
-                    showToast('Copied ✓');
-                } else {
-                    showToast('Clipboard copy failed.', true);
-                }
-            } catch (err) {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied ✓');
+            } catch {
                 showToast('Clipboard copy failed.', true);
             }
         }
@@ -259,9 +231,9 @@
                     }
                     if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
                         html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
-                        html += '<div class="feed-link"><a href="' + data.api_endpoints.json_api + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.json_api + '</a></div>';
-                        html += '<div class="feed-link"><a href="' + data.api_endpoints.atom_feed_path + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.atom_feed_path + '</a></div>';
-                        html += '<div class="feed-link"><a href="' + data.api_endpoints.atom_feed_query + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.atom_feed_query + '</a></div></div>';
+                        html += '<div class="feed-link">POST JSON: ' + data.api_endpoints.json_api + '</div>';
+                        html += '<div class="feed-link">Atom (path): ' + data.api_endpoints.atom_feed_path + '</div>';
+                        html += '<div class="feed-link">Atom (query): ' + data.api_endpoints.atom_feed_query + '</div></div>';
                     }
                     
                     resultDiv.innerHTML = html;
