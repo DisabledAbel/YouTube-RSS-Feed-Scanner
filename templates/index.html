@@ -167,6 +167,10 @@
             }
         }
 
+        function copyEncodedText(encodedText) {
+            copyText(decodeURIComponent(encodedText));
+        }
+
         async function getFeed() {
             const url = document.getElementById('channelUrl').value.trim();
             const resultDiv = document.getElementById('result');
@@ -212,13 +216,13 @@
                     
                     html += '<div class="feed-row"><div class="feed-label">YouTube RSS:</div>';
                     html += '<div class="feed-link">' + data.youtube_rss + '</div>';
-                    html += '<button class="copy-btn" onclick="copyText(' + JSON.stringify(data.youtube_rss) + ')">Copy YouTube RSS</button></div>';
+                    html += '<button class="copy-btn" onclick="copyEncodedText(\'' + encodeURIComponent(data.youtube_rss) + '\')">Copy YouTube RSS</button></div>';
                     
                     if (data.atom_feed) {
                         html += '<div class="atom-output">';
                         html += '<div class="feed-label">Atom Feed (' + data.video_count + ' videos):</div>';
                         html += '<textarea readonly>' + data.atom_feed + '</textarea>';
-                        html += '<button class="copy-btn" onclick="copyText(' + JSON.stringify(data.atom_feed) + ')">Copy Atom Feed XML</button>';
+                        html += '<button class="copy-btn" onclick="copyEncodedText(\'' + encodeURIComponent(data.atom_feed) + '\')">Copy Atom Feed XML</button>';
                         html += '</div>';
                     }
                     if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
