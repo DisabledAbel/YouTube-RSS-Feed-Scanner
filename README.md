@@ -13,10 +13,8 @@
   - Playlist URLs
 - JSON output support
 - Easy to self-host
-- GitHub Actions compatible
 - Perfect for:
   - RSS readers
-  - IPTV systems
   - Automation tools
   - Archiving workflows
 
