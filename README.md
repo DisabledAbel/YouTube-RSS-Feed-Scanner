@@ -123,6 +123,12 @@ npm start "https://www.youtube.com/playlist?list=PLxxxxxxxx"
 npm start --json
 ```
 
+### Include API endpoints in terminal output
+
+```bash
+python rss_scanner.py "https://www.youtube.com/@LinusTechTips" --include-api-endpoints --base-url "https://your-domain.com"
+```
+
 ---
 
 ## Example RSS Feed
