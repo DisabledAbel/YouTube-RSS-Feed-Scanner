@@ -11,6 +11,7 @@ import sys
 import urllib.request
 import urllib.parse
 import json
+import xml.etree.ElementTree as ET
 
 
 # Invidious instances to try (open-source YouTube frontends with RSS support)
@@ -247,6 +248,47 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
     raise ValueError("Could not find channel ID from URL")
 
 
+
+
+def parse_rss_entries(feed_xml: str, limit: int = 10) -> list[dict]:
+    """Parse entries from Atom/RSS feed XML."""
+    entries: list[dict] = []
+    root = ET.fromstring(feed_xml)
+
+    # Atom feed
+    if root.tag.endswith('feed'):
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+        for entry in root.findall('atom:entry', ns)[:limit]:
+            title = (entry.findtext('atom:title', default='Untitled', namespaces=ns) or 'Untitled').strip()
+            link = ''
+            for link_el in entry.findall('atom:link', ns):
+                href = link_el.attrib.get('href', '').strip()
+                if href:
+                    link = href
+                    break
+            published = (entry.findtext('atom:published', default='', namespaces=ns)
+                         or entry.findtext('atom:updated', default='', namespaces=ns)
+                         or '').strip()
+            entries.append({'title': title, 'link': link, 'published': published})
+        return entries
+
+    # RSS 2.0 feed
+    channel = root.find('channel')
+    if channel is not None:
+        for item in channel.findall('item')[:limit]:
+            title = (item.findtext('title') or 'Untitled').strip()
+            link = (item.findtext('link') or '').strip()
+            published = (item.findtext('pubDate') or '').strip()
+            entries.append({'title': title, 'link': link, 'published': published})
+
+    return entries
+
+
+def read_feed(feed_url: str, limit: int = 10) -> list[dict]:
+    """Fetch and parse a feed URL."""
+    xml = fetch_url(feed_url)
+    return parse_rss_entries(xml, limit=limit)
+
 def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080") -> tuple:
     """Get RSS feed data for a YouTube channel.
     
@@ -314,6 +356,8 @@ Supported URL types:
     parser.add_argument("-a", "--atom", action="store_true", help="Output generated Atom RSS feed")
     parser.add_argument("--include-api-endpoints", action="store_true", help="Include API endpoint URLs in output")
     parser.add_argument("--base-url", default="http://localhost:8080", help="Base URL used for API endpoint output")
+    parser.add_argument("--read", action="store_true", help="Read and display recent entries from discovered RSS feed")
+    parser.add_argument("--limit", type=int, default=10, help="Number of feed entries to show with --read (default: 10)")
     
     args = parser.parse_args()
     
@@ -366,7 +410,20 @@ Supported URL types:
                 print(f"JSON API (POST): {api_endpoints['json_api']}")
                 print(f"Atom Feed (path): {api_endpoints['atom_feed_path']}")
                 print(f"Atom Feed (query): {api_endpoints['atom_feed_query']}")
-        
+
+        if args.read:
+            feed_source = invidious_rss or youtube_rss
+            print(f"\nReading feed: {feed_source}")
+            entries = read_feed(feed_source, limit=max(1, args.limit))
+            if not entries:
+                print("No entries found in feed.")
+            for idx, entry in enumerate(entries, start=1):
+                print(f"\n{idx}. {entry['title']}")
+                if entry['published']:
+                    print(f"   Published: {entry['published']}")
+                if entry['link']:
+                    print(f"   Link: {entry['link']}")
+
         if args.copy:
             # Copy YouTube RSS URL (even if potentially broken)
             try:
