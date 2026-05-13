@@ -131,6 +131,41 @@ python rss_scanner.py "https://www.youtube.com/@LinusTechTips" --include-api-end
 
 ---
 
+
+## CLI RSS Reader (Python)
+
+If you are running locally and want to read recent items directly in the terminal:
+
+1. **Use Python 3.10+** (type hints in this project require modern Python).
+2. **Run the scanner with a YouTube URL plus `--read`.**
+3. **Optionally set `--limit`** to control how many entries are printed.
+
+### Basic reader command
+
+```bash
+python rss_scanner.py "https://www.youtube.com/@LinusTechTips" --read
+```
+
+### Show only the latest 5 entries
+
+```bash
+python rss_scanner.py "https://www.youtube.com/@LinusTechTips" --read --limit 5
+```
+
+### Reader with API endpoint output
+
+```bash
+python rss_scanner.py "https://www.youtube.com/@LinusTechTips" --read --include-api-endpoints --base-url "http://localhost:8080"
+```
+
+### Troubleshooting
+
+- If YouTube lookups fail, verify outbound internet access from your machine/container.
+- The reader prefers a discovered Invidious feed and falls back to YouTube RSS when needed.
+- If you get no entries, try a different channel URL and increase `--limit`.
+
+---
+
 ## Example RSS Feed
 
 ```text
