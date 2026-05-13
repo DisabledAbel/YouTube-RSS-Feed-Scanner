@@ -9,6 +9,7 @@ from flask_caching import Cache
 import rss_scanner
 import urllib.parse
 import urllib.request
+import urllib.error
 import json
 
 app = Flask(__name__, template_folder='api')
@@ -110,8 +111,12 @@ def send_to_discord(webhook_url: str, youtube_rss: str, channel_id: str | None, 
         if 200 <= status < 300:
             return {'ok': True, 'status': status}
         return {'ok': False, 'status': status}
-    except Exception as webhook_error:
-        return {'ok': False, 'error': str(webhook_error)}
+    except urllib.error.HTTPError as e:
+        app.logger.exception('Discord webhook HTTP error')
+        return {'ok': False, 'error': 'webhook request failed', 'status': e.code}
+    except urllib.error.URLError as e:
+        app.logger.exception('Discord webhook URL error')
+        return {'ok': False, 'error': 'webhook request failed'}
 
 
 @app.route('/feed/')
