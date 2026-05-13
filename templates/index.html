@@ -224,7 +224,7 @@
                     
                     html += '<div class="feed-row"><div class="feed-label">YouTube RSS:</div>';
                     html += '<div class="feed-link">' + data.youtube_rss + '</div>';
-                    html += '<button class="copy-btn" onclick="copyEncodedText(\'' + encodeURIComponent(data.youtube_rss) + '\')">Copy YouTube RSS</button></div>';
+                    html += '<button class="copy-btn" data-encoded="' + encodeURIComponent(data.youtube_rss) + '">Copy YouTube RSS</button></div>';
                     
                     if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
                         html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
@@ -233,6 +233,13 @@
                     }
                     
                     resultDiv.innerHTML = html;
+
+                    // Attach event listeners to copy buttons
+                    resultDiv.querySelectorAll('.copy-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            copyEncodedText(this.dataset.encoded);
+                        });
+                    });
                 }
             } catch (e) {
                 resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
