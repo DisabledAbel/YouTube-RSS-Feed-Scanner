@@ -158,20 +158,12 @@
             document.getElementById('channelUrl').value = 'https://www.youtube.com/' + channel;
         }
         
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = isError ? '#8a1f1f' : '#1e7f3f';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 1600);
-        }
-
         async function copyText(text) {
             try {
                 await navigator.clipboard.writeText(text);
-                showToast('Copied ✓');
+                alert('Copied!');
             } catch {
-                showToast('Clipboard copy failed.', true);
+                alert('Clipboard copy failed.');
             }
         }
 
@@ -179,15 +171,23 @@
             const url = document.getElementById('channelUrl').value.trim();
             const resultDiv = document.getElementById('result');
             const btn = document.getElementById('getFeedBtn');
-            
+
             if (!url) {
-                resultDiv.innerHTML = '<div class="error">Please enter a YouTube channel URL</div>';
+                resultDiv.innerHTML = '';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = 'Please enter a YouTube channel URL';
+                resultDiv.appendChild(errorDiv);
                 resultDiv.style.display = 'block';
                 return;
             }
-            
+
             if (!url.startsWith('http')) {
-                resultDiv.innerHTML = '<div class="error">Please enter a full URL (e.g., https://www.youtube.com/@channel)</div>';
+                resultDiv.innerHTML = '';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = 'Please enter a full URL (e.g., https://www.youtube.com/@channel)';
+                resultDiv.appendChild(errorDiv);
                 resultDiv.style.display = 'block';
                 return;
             }
@@ -211,23 +211,97 @@
                 if (data.error) {
                     resultDiv.innerHTML = '<div class="error">' + data.error + '</div>';
                 } else {
-                    let html = '<div class="channel-info">';
+                    // Channel info
+                    const channelInfo = document.createElement('div');
+                    channelInfo.className = 'channel-info';
+
                     if (data.channel_name) {
-                        html += '<p><strong>Channel:</strong> ' + data.channel_name + '</p>';
+                        const channelP = document.createElement('p');
+                        const channelStrong = document.createElement('strong');
+                        channelStrong.textContent = 'Channel: ';
+                        channelP.appendChild(channelStrong);
+                        channelP.appendChild(document.createTextNode(data.channel_name));
+                        channelInfo.appendChild(channelP);
                     }
-                    html += '<p><strong>Channel ID:</strong> ' + data.channel_id + '</p>';
-                    html += '</div>';
-                    
-                    html += '<div class="feed-row"><div class="feed-label">YouTube RSS:</div>';
-                    html += '<div class="feed-link">' + data.youtube_rss + '</div>';
-                    html += '<button class="copy-btn" onclick="copyText(' + JSON.stringify(data.youtube_rss) + ')">Copy YouTube RSS</button></div>';
-                    
+
+                    const idP = document.createElement('p');
+                    const idStrong = document.createElement('strong');
+                    idStrong.textContent = 'Channel ID: ';
+                    idP.appendChild(idStrong);
+                    idP.appendChild(document.createTextNode(data.channel_id));
+                    channelInfo.appendChild(idP);
+                    resultDiv.appendChild(channelInfo);
+
+                    // YouTube RSS
+                    const feedRow = document.createElement('div');
+                    feedRow.className = 'feed-row';
+
+                    const feedLabel = document.createElement('div');
+                    feedLabel.className = 'feed-label';
+                    feedLabel.textContent = 'YouTube RSS:';
+                    feedRow.appendChild(feedLabel);
+
+                    const feedLink = document.createElement('div');
+                    feedLink.className = 'feed-link';
+                    feedLink.textContent = data.youtube_rss;
+                    feedRow.appendChild(feedLink);
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-btn';
+                    copyBtn.textContent = 'Copy YouTube RSS';
+                    copyBtn.addEventListener('click', () => copyText(data.youtube_rss));
+                    feedRow.appendChild(copyBtn);
+                    resultDiv.appendChild(feedRow);
+
+                    // Atom feed
                     if (data.atom_feed) {
-                        html += '<div class="atom-output">';
-                        html += '<div class="feed-label">Atom Feed (' + data.video_count + ' videos):</div>';
-                        html += '<textarea readonly>' + data.atom_feed + '</textarea>';
-                        html += '<button class="copy-btn" onclick="copyText(' + JSON.stringify(data.atom_feed) + ')">Copy Atom Feed XML</button>';
-                        html += '</div>';
+                        const atomOutput = document.createElement('div');
+                        atomOutput.className = 'atom-output';
+
+                        const atomLabel = document.createElement('div');
+                        atomLabel.className = 'feed-label';
+                        atomLabel.textContent = 'Atom Feed (' + data.video_count + ' videos):';
+                        atomOutput.appendChild(atomLabel);
+
+                        const textarea = document.createElement('textarea');
+                        textarea.readOnly = true;
+                        textarea.value = data.atom_feed;
+                        atomOutput.appendChild(textarea);
+
+                        const atomCopyBtn = document.createElement('button');
+                        atomCopyBtn.className = 'copy-btn';
+                        atomCopyBtn.textContent = 'Copy Atom Feed XML';
+                        atomCopyBtn.addEventListener('click', () => copyText(data.atom_feed));
+                        atomOutput.appendChild(atomCopyBtn);
+                        resultDiv.appendChild(atomOutput);
+                    }
+
+                    // API endpoints
+                    if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
+                        const apiOutput = document.createElement('div');
+                        apiOutput.className = 'atom-output';
+
+                        const apiLabel = document.createElement('div');
+                        apiLabel.className = 'feed-label';
+                        apiLabel.textContent = 'API Endpoints:';
+                        apiOutput.appendChild(apiLabel);
+
+                        const jsonApiDiv = document.createElement('div');
+                        jsonApiDiv.className = 'feed-link';
+                        jsonApiDiv.textContent = 'POST JSON: ' + data.api_endpoints.json_api;
+                        apiOutput.appendChild(jsonApiDiv);
+
+                        const atomPathDiv = document.createElement('div');
+                        atomPathDiv.className = 'feed-link';
+                        atomPathDiv.textContent = 'Atom (path): ' + data.api_endpoints.atom_feed_path;
+                        apiOutput.appendChild(atomPathDiv);
+
+                        const atomQueryDiv = document.createElement('div');
+                        atomQueryDiv.className = 'feed-link';
+                        atomQueryDiv.textContent = 'Atom (query): ' + data.api_endpoints.atom_feed_query;
+                        apiOutput.appendChild(atomQueryDiv);
+
+                        resultDiv.appendChild(apiOutput);
                     }
                     if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
                         html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';

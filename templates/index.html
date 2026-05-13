@@ -158,20 +158,12 @@
             document.getElementById('channelUrl').value = 'https://www.youtube.com/' + channel;
         }
         
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = isError ? '#8a1f1f' : '#1e7f3f';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 1600);
-        }
-
         async function copyText(text) {
             try {
                 await navigator.clipboard.writeText(text);
-                showToast('Copied ✓');
+                alert('Copied!');
             } catch {
-                showToast('Clipboard copy failed.', true);
+                alert('Clipboard copy failed.');
             }
         }
 
