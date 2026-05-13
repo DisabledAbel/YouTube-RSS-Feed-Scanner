@@ -215,6 +215,7 @@
                     errorDiv.textContent = data.error;
                     resultDiv.appendChild(errorDiv);
                 } else {
+                    resultDiv.innerHTML = '';
                     // Channel info
                     const channelInfo = document.createElement('div');
                     channelInfo.className = 'channel-info';
