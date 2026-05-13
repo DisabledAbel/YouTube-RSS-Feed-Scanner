@@ -32,7 +32,17 @@ def api_feed():
         url = 'https://' + url
     
     try:
-        include_api_endpoints = bool(data.get('include_api_endpoints', False))
+        # Normalize include_api_endpoints to boolean
+        raw_value = data.get('include_api_endpoints', False)
+        if isinstance(raw_value, bool):
+            include_api_endpoints = raw_value
+        elif isinstance(raw_value, str):
+            include_api_endpoints = raw_value.lower() in ('true', '1', 'yes')
+        elif isinstance(raw_value, (int, float)):
+            include_api_endpoints = raw_value == 1
+        else:
+            include_api_endpoints = False
+
         base_url = request.host_url.rstrip('/')
         youtube_rss, channel_id, channel_name, atom_feed, video_count, _, api_endpoints = rss_scanner.get_rss_feed(
             url,
