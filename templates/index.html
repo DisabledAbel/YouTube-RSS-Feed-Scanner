@@ -88,18 +88,6 @@
             padding: 15px;
             border-radius: 8px;
         }
-        .presets {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        .preset-btn {
-            width: auto;
-            padding: 8px 12px;
-            font-size: 13px;
-            background: #333;
-        }
         .note {
             font-size: 12px;
             color: #666;
@@ -134,12 +122,6 @@
         <input type="text" id="channelUrl" placeholder="https://www.youtube.com/@channel or https://www.youtube.com/c/username">
     </div>
     
-    <div class="presets">
-        <button class="preset-btn" onclick="setPreset('@Beardmeatsfood')">@Beardmeatsfood</button>
-        <button class="preset-btn" onclick="setPreset('@MKBHD')">@MKBHD</button>
-        <button class="preset-btn" onclick="setPreset('@MrBeast')">@MrBeast</button>
-    </div>
-    
     <button id="getFeedBtn" onclick="getFeed()">Get RSS Feed</button>
     <div class="input-group" style="margin-top: 12px;">
         <label>
@@ -154,10 +136,6 @@
     <div id="toast" class="toast"></div>
     
     <script>
-        function setPreset(channel) {
-            document.getElementById('channelUrl').value = 'https://www.youtube.com/' + channel;
-        }
-        
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
