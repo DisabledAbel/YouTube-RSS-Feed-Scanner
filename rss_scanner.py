@@ -243,10 +243,10 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
     raise ValueError("Could not find channel ID from URL")
 
 
-def get_rss_feed(url: str) -> tuple:
+def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080") -> tuple:
     """Get RSS feed data for a YouTube channel.
     
-    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss)
+    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints)
     """
     channel_id, channel_name = extract_channel_id(url)
     
@@ -273,7 +273,16 @@ def get_rss_feed(url: str) -> tuple:
         except Exception:
             continue
     
-    return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss
+    api_endpoints = {}
+    if include_api_endpoints:
+        encoded_url = urllib.parse.quote(url, safe="")
+        api_endpoints = {
+            "json_api": f"{base_url.rstrip('/')}/api/feed",
+            "atom_feed_path": f"{base_url.rstrip('/')}/feed/{encoded_url}",
+            "atom_feed_query": f"{base_url.rstrip('/')}/feed?channel_url={urllib.parse.quote(url)}",
+        }
+
+    return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints
 
 
 def main():
@@ -299,6 +308,8 @@ Supported URL types:
     parser.add_argument("-q", "--quiet", action="store_true", help="Only output the RSS URL")
     parser.add_argument("-c", "--copy", action="store_true", help="Copy RSS URL to clipboard")
     parser.add_argument("-a", "--atom", action="store_true", help="Output generated Atom RSS feed")
+    parser.add_argument("--include-api-endpoints", action="store_true", help="Include API endpoint URLs in output")
+    parser.add_argument("--base-url", default="http://localhost:8080", help="Base URL used for API endpoint output")
     
     args = parser.parse_args()
     
@@ -315,7 +326,11 @@ Supported URL types:
         url = "https://" + url
     
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss = get_rss_feed(url)
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints = get_rss_feed(
+            url,
+            include_api_endpoints=args.include_api_endpoints,
+            base_url=args.base_url
+        )
         
         if args.atom:
             # Output generated Atom feed directly
@@ -342,6 +357,11 @@ Supported URL types:
                 print("Use -a flag to output Atom XML feed")
             else:
                 print("\nNote: YouTube's native feeds are broken.")
+            if api_endpoints:
+                print("\nAPI Endpoints:")
+                print(f"JSON API (POST): {api_endpoints['json_api']}")
+                print(f"Atom Feed (path): {api_endpoints['atom_feed_path']}")
+                print(f"Atom Feed (query): {api_endpoints['atom_feed_query']}")
         
         if args.copy:
             # Copy YouTube RSS URL (even if potentially broken)

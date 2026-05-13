@@ -59,6 +59,14 @@
             font-size: 13px;
             color: #4fc3f7;
         }
+        .feed-row { margin-bottom: 10px; }
+        .copy-btn {
+            margin-top: 6px;
+            width: auto;
+            padding: 7px 10px;
+            font-size: 12px;
+            background: #444;
+        }
         .feed-label { color: #aaa; font-size: 12px; margin-bottom: 4px; }
         .atom-output {
             margin-top: 15px;
@@ -108,7 +116,19 @@
         <input type="text" id="channelUrl" placeholder="https://www.youtube.com/@channel or https://www.youtube.com/c/username">
     </div>
     
+    <div class="presets">
+        <button class="preset-btn" onclick="setPreset('@Beardmeatsfood')">@Beardmeatsfood</button>
+        <button class="preset-btn" onclick="setPreset('@MKBHD')">@MKBHD</button>
+        <button class="preset-btn" onclick="setPreset('@MrBeast')">@MrBeast</button>
+    </div>
+    
     <button id="getFeedBtn" onclick="getFeed()">Get RSS Feed</button>
+    <div class="input-group" style="margin-top: 12px;">
+        <label>
+            <input type="checkbox" id="includeApiEndpoints" style="width:auto; margin-right:8px;">
+            Include API endpoints
+        </label>
+    </div>
     
     <div id="result"></div>
     
@@ -119,6 +139,15 @@
             document.getElementById('channelUrl').value = 'https://www.youtube.com/' + channel;
         }
         
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('Copied!');
+            } catch {
+                alert('Clipboard copy failed.');
+            }
+        }
+
         async function getFeed() {
             const url = document.getElementById('channelUrl').value.trim();
             const resultDiv = document.getElementById('result');
@@ -144,77 +173,46 @@
                 const response = await fetch('/api/feed', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
+                    body: JSON.stringify({
+                        url: url,
+                        include_api_endpoints: document.getElementById('includeApiEndpoints').checked
+                    })
                 });
-
+                
                 const data = await response.json();
-
-                // Clear previous content
-                resultDiv.innerHTML = '';
-
+                
                 if (data.error) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error';
-                    errorDiv.textContent = data.error;
-                    resultDiv.appendChild(errorDiv);
+                    resultDiv.innerHTML = '<div class="error">' + data.error + '</div>';
                 } else {
-                    // Channel info section
-                    const channelInfoDiv = document.createElement('div');
-                    channelInfoDiv.className = 'channel-info';
-
+                    let html = '<div class="channel-info">';
                     if (data.channel_name) {
-                        const namePara = document.createElement('p');
-                        const nameStrong = document.createElement('strong');
-                        nameStrong.textContent = 'Channel:';
-                        namePara.appendChild(nameStrong);
-                        namePara.appendChild(document.createTextNode(' ' + data.channel_name));
-                        channelInfoDiv.appendChild(namePara);
+                        html += '<p><strong>Channel:</strong> ' + data.channel_name + '</p>';
                     }
-
-                    const idPara = document.createElement('p');
-                    const idStrong = document.createElement('strong');
-                    idStrong.textContent = 'Channel ID:';
-                    idPara.appendChild(idStrong);
-                    idPara.appendChild(document.createTextNode(' ' + data.channel_id));
-                    channelInfoDiv.appendChild(idPara);
-
-                    resultDiv.appendChild(channelInfoDiv);
-
-                    // YouTube RSS section
-                    const rssLabel = document.createElement('div');
-                    rssLabel.className = 'feed-label';
-                    rssLabel.textContent = 'YouTube RSS Feed ;
-                    resultDiv.appendChild(rssLabel);
-
-                    const rssLink = document.createElement('div');
-                    rssLink.className = 'feed-link';
-                    rssLink.textContent = data.youtube_rss;
-                    resultDiv.appendChild(rssLink);
-
-                    // Atom feed section
+                    html += '<p><strong>Channel ID:</strong> ' + data.channel_id + '</p>';
+                    html += '</div>';
+                    
+                    html += '<div class="feed-row"><div class="feed-label">YouTube RSS:</div>';
+                    html += '<div class="feed-link">' + data.youtube_rss + '</div>';
+                    html += '<button class="copy-btn" onclick="copyText(' + JSON.stringify(data.youtube_rss) + ')">Copy YouTube RSS</button></div>';
+                    
                     if (data.atom_feed) {
-                        const atomOutputDiv = document.createElement('div');
-                        atomOutputDiv.className = 'atom-output';
-
-                        const atomLabel = document.createElement('div');
-                        atomLabel.className = 'feed-label';
-                        atomLabel.textContent = 'Atom Feed (' + data.video_count + ' videos):';
-                        atomOutputDiv.appendChild(atomLabel);
-
-                        const textarea = document.createElement('textarea');
-                        textarea.readOnly = true;
-                        textarea.value = data.atom_feed;
-                        atomOutputDiv.appendChild(textarea);
-
-                        resultDiv.appendChild(atomOutputDiv);
+                        html += '<div class="atom-output">';
+                        html += '<div class="feed-label">Atom Feed (' + data.video_count + ' videos):</div>';
+                        html += '<textarea readonly>' + data.atom_feed + '</textarea>';
+                        html += '<button class="copy-btn" onclick="copyText(' + JSON.stringify(data.atom_feed) + ')">Copy Atom Feed XML</button>';
+                        html += '</div>';
                     }
+                    if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
+                        html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
+                        html += '<div class="feed-link">POST JSON: ' + data.api_endpoints.json_api + '</div>';
+                        html += '<div class="feed-link">Atom (path): ' + data.api_endpoints.atom_feed_path + '</div>';
+                        html += '<div class="feed-link">Atom (query): ' + data.api_endpoints.atom_feed_query + '</div></div>';
+                    }
+                    
+                    resultDiv.innerHTML = html;
                 }
             } catch (e) {
-                resultDiv.innerHTML = '';
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error';
-                errorDiv.textContent = 'Error: ' + e.message;
-                resultDiv.appendChild(errorDiv);
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
             }
             
             btn.disabled = false;

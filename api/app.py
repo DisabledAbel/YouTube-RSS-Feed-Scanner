@@ -32,14 +32,21 @@ def api_feed():
         url = 'https://' + url
     
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count, _ = rss_scanner.get_rss_feed(url)
+        include_api_endpoints = bool(data.get('include_api_endpoints', False))
+        base_url = request.host_url.rstrip('/')
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, _, api_endpoints = rss_scanner.get_rss_feed(
+            url,
+            include_api_endpoints=include_api_endpoints,
+            base_url=base_url
+        )
         
         return Response(json.dumps({
             'youtube_rss': youtube_rss,
             'channel_id': channel_id,
             'channel_name': channel_name,
             'atom_feed': atom_feed,
-            'video_count': video_count
+            'video_count': video_count,
+            'api_endpoints': api_endpoints
         }), mimetype='application/json')
     except Exception as e:
         return Response(json.dumps({'error': str(e)}), mimetype='application/json', status=500)
@@ -62,7 +69,7 @@ def get_feed(channel_url=None):
         full_url = channel_url
     
     try:
-        _, channel_id, channel_name, atom_feed, video_count, _ = rss_scanner.get_rss_feed(full_url)
+        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url)
         
         if atom_feed:
             # Fix channel name in feed
@@ -94,7 +101,7 @@ def get_cached_feed(channel):
         full_url = f"https://{channel}"
     
     try:
-        _, channel_id, channel_name, atom_feed, video_count, _ = rss_scanner.get_rss_feed(full_url)
+        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url)
         
         if atom_feed:
             if channel_name:
