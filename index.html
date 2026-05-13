@@ -108,12 +108,6 @@
         <input type="text" id="channelUrl" placeholder="https://www.youtube.com/@channel or https://www.youtube.com/c/username">
     </div>
     
-    <div class="presets">
-        <button class="preset-btn" onclick="setPreset('@Beardmeatsfood')">@Beardmeatsfood</button>
-        <button class="preset-btn" onclick="setPreset('@MKBHD')">@MKBHD</button>
-        <button class="preset-btn" onclick="setPreset('@MrBeast')">@MrBeast</button>
-    </div>
-    
     <button id="getFeedBtn" onclick="getFeed()">Get RSS Feed</button>
     
     <div id="result"></div>
@@ -189,7 +183,7 @@
                     // YouTube RSS section
                     const rssLabel = document.createElement('div');
                     rssLabel.className = 'feed-label';
-                    rssLabel.textContent = 'YouTube RSS (often broken):';
+                    rssLabel.textContent = 'YouTube RSS Feed ;
                     resultDiv.appendChild(rssLabel);
 
                     const rssLink = document.createElement('div');
