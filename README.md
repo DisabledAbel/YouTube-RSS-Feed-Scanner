@@ -177,7 +177,7 @@ Monitor and archive newly uploaded videos automatically.
 
 Deploy instantly with Vercel.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/import?buildCommand=uv+pip+install+--system+-r+requirements.txt&framework=flask&hasTrialAvailable=1&id=1236109409&installCommand=uv+pip+install+--system+-r+requirements.txt&name=YouTube-RSS-Feed-Scanner&outputDirectory=api&owner=DisabledAbel&project-name=you-tube-rss-feed-scanner&provider=github&remainingProjects=1&s=https%3A%2F%2Fgithub.com%2FDisabledAbel%2FYouTube-RSS-Feed-Scanner)
 
 ---
 
