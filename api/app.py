@@ -52,10 +52,10 @@ def api_feed():
         )
 
         discord_result = None
-        discord_webhook_url = data.get('discord_webhook_url', '')
+        discord_webhook_url = data.get('discord_webhook_url', '').strip()
         if discord_webhook_url:
             discord_result = send_to_discord(
-                webhook_url=discord_webhook_url.strip(),
+                webhook_url=discord_webhook_url,
                 youtube_rss=youtube_rss,
                 channel_id=channel_id,
                 channel_name=channel_name,
