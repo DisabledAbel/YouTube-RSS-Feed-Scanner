@@ -308,6 +308,14 @@
 
                         resultDiv.appendChild(apiOutput);
                     }
+                    if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
+                        html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
+                        html += '<div class="feed-link">POST JSON: <a href="' + data.api_endpoints.json_api + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.json_api + '</a></div>';
+                        html += '<div class="feed-link">Atom (path): <a href="' + data.api_endpoints.atom_feed_path + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.atom_feed_path + '</a></div>';
+                        html += '<div class="feed-link">Atom (query): <a href="' + data.api_endpoints.atom_feed_query + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.atom_feed_query + '</a></div></div>';
+                    }
+                    
+                    resultDiv.innerHTML = html;
                 }
             } catch (e) {
                 resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
