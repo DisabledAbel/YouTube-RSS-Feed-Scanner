@@ -72,12 +72,18 @@ npm start
 ```
 ---
 
-### `/api/feed` (POST)
+### `/api/feed` (GET or POST)
 
 ### Scan a YouTube channel
 
 ```bash
 npm start "https://www.youtube.com/@LinusTechTips"
+```
+
+### GET endpoint (works directly in browser)
+
+```text
+/api/feed?url=https://www.youtube.com/@LinusTechTips
 ```
 
 ---

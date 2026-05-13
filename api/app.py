@@ -21,15 +21,29 @@ def index():
     return send_from_directory('.', 'index.html')
 
 
-@app.route('/api/feed', methods=['POST'])
+@app.route('/api/feed', methods=['GET', 'POST'])
 def api_feed():
     """API endpoint for getting feed data."""
-    data = request.get_json()
+    # Try query parameters first, then fall back to JSON body
+    url = request.args.get('url')
+    data = request.get_json(silent=True) or {}
 
-    if not data or 'url' not in data:
+    if not url:
+        if not data or 'url' not in data:
+            return jsonify({
+                'error': 'Missing url parameter',
+                'usage': {
+                    'post_json': {'url': 'https://www.youtube.com/@channel', 'include_api_endpoints': False},
+                    'get_query': '/api/feed?url=https://www.youtube.com/@channel'
+                }
+            }), 400
+        url = data['url']
+    else:
+        # Merge query args with JSON body if present
+        if not isinstance(data, dict):
+            data = {}
+    if not url:
         return jsonify({'error': 'Missing url parameter'}), 400
-    
-    url = data['url']
     if not url.startswith('http'):
         url = 'https://' + url
     
