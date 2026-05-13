@@ -99,6 +99,24 @@ PATTERNS = [
 ]
 
 
+
+
+def is_valid_channel_id(channel_id: str | None) -> bool:
+    return bool(channel_id and re.fullmatch(r"UC[a-zA-Z0-9_-]{22}", channel_id))
+
+
+def extract_channel_id_from_html(html: str) -> str | None:
+    patterns = [
+        r'https://www\.youtube\.com/channel/(UC[a-zA-Z0-9_-]{22})',
+        r'"externalId":"(UC[a-zA-Z0-9_-]{22})"',
+        r'"channelId":"(UC[a-zA-Z0-9_-]{22})"',
+        r'"browseId":"(UC[a-zA-Z0-9_-]{22})"',
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, html)
+        if m and is_valid_channel_id(m.group(1)):
+            return m.group(1)
+    return None
 def fetch_url(url: str) -> str:
     """Fetch URL content using direct request."""
     req = urllib.request.Request(
@@ -168,13 +186,9 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
                 try:
                     html = fetch_url(author_url)
                     # Try externalId first
-                    channel_match = re.search(r'"externalId":"([^"]+)"', html)
-                    if channel_match:
-                        return channel_match.group(1), noembed.get('title', '')
-                    # Fall back to channelId
-                    channel_match = re.search(r'"channelId":"([a-zA-Z0-9_-]{22})"', html)
-                    if channel_match:
-                        return channel_match.group(1), noembed.get('title', '')
+                    channel_id = extract_channel_id_from_html(html)
+                    if channel_id:
+                        return channel_id, noembed.get('title', '')
                 except:
                     pass
         except Exception as e:
@@ -188,21 +202,18 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
             author_url = noembed.get('author_url', '')
             if author_url:
                 html = fetch_url(author_url)
-                channel_match = re.search(r'"externalId":"([^"]+)"', html)
-                if channel_match:
-                    return channel_match.group(1), noembed.get('title', '')
+                channel_id = extract_channel_id_from_html(html)
+                if channel_id:
+                    return channel_id, noembed.get('title', '')
         except Exception as e:
             print(f"noembed error: {e}", file=sys.stderr)
         
         # Fallback: direct HTML fetch 
         try:
             html = fetch_url(url)
-            channel_match = re.search(r'"externalId":"([^"]+)"', html)
-            if channel_match:
-                return channel_match.group(1), None
-            channel_match = re.search(r'"channelId":"([a-zA-Z0-9_-]{22})"', html)
-            if channel_match:
-                return channel_match.group(1), None
+            channel_id = extract_channel_id_from_html(html)
+            if channel_id:
+                return channel_id, None
         except Exception as e:
             print(f"direct fetch error: {e}", file=sys.stderr)
     
@@ -224,15 +235,8 @@ def extract_channel_id(url: str) -> tuple[str | None, str | None]:
         try:
             html = fetch_url(fetch_url_str)
             
-            # Try externalId first (more reliable)
-            channel_match = re.search(r'"externalId":"([^"]+)"', html)
-            if channel_match:
-                return channel_match.group(1), None
-            
-            # Look for channelId in JSON
-            channel_match = re.search(r'"channelId":"([a-zA-Z0-9_-]{22})"', html)
-            if channel_match:
-                channel_id = channel_match.group(1)
+            channel_id = extract_channel_id_from_html(html)
+            if channel_id:
                 name_match = re.search(r'"channelName":"([^"]+)"', html)
                 channel_name = name_match.group(1) if name_match else None
                 return channel_id, channel_name

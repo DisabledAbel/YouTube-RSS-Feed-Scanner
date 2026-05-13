@@ -158,12 +158,20 @@
             document.getElementById('channelUrl').value = 'https://www.youtube.com/' + channel;
         }
         
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = isError ? '#8a1f1f' : '#1e7f3f';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1600);
+        }
+
         async function copyText(text) {
             try {
                 await navigator.clipboard.writeText(text);
-                alert('Copied!');
+                showToast('Copied!');
             } catch {
-                alert('Clipboard copy failed.');
+                showToast('Clipboard copy failed.', true);
             }
         }
 
@@ -258,28 +266,6 @@
                     feedRow.appendChild(copyBtn);
                     resultDiv.appendChild(feedRow);
 
-                    // Atom feed
-                    if (data.atom_feed) {
-                        const atomOutput = document.createElement('div');
-                        atomOutput.className = 'atom-output';
-
-                        const atomLabel = document.createElement('div');
-                        atomLabel.className = 'feed-label';
-                        atomLabel.textContent = 'Atom Feed (' + data.video_count + ' videos):';
-                        atomOutput.appendChild(atomLabel);
-
-                        const textarea = document.createElement('textarea');
-                        textarea.readOnly = true;
-                        textarea.value = data.atom_feed;
-                        atomOutput.appendChild(textarea);
-
-                        const atomCopyBtn = document.createElement('button');
-                        atomCopyBtn.className = 'copy-btn';
-                        atomCopyBtn.textContent = 'Copy Atom Feed XML';
-                        atomCopyBtn.addEventListener('click', () => copyText(data.atom_feed));
-                        atomOutput.appendChild(atomCopyBtn);
-                        resultDiv.appendChild(atomOutput);
-                    }
 
                     // API endpoints
                     if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
@@ -296,26 +282,8 @@
                         jsonApiDiv.textContent = 'POST JSON: ' + data.api_endpoints.json_api;
                         apiOutput.appendChild(jsonApiDiv);
 
-                        const atomPathDiv = document.createElement('div');
-                        atomPathDiv.className = 'feed-link';
-                        atomPathDiv.textContent = 'Atom (path): ' + data.api_endpoints.atom_feed_path;
-                        apiOutput.appendChild(atomPathDiv);
-
-                        const atomQueryDiv = document.createElement('div');
-                        atomQueryDiv.className = 'feed-link';
-                        atomQueryDiv.textContent = 'Atom (query): ' + data.api_endpoints.atom_feed_query;
-                        apiOutput.appendChild(atomQueryDiv);
-
                         resultDiv.appendChild(apiOutput);
                     }
-                    if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
-                        html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
-                        html += '<div class="feed-link">POST JSON: <a href="' + data.api_endpoints.json_api + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.json_api + '</a></div>';
-                        html += '<div class="feed-link">Atom (path): <a href="' + data.api_endpoints.atom_feed_path + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.atom_feed_path + '</a></div>';
-                        html += '<div class="feed-link">Atom (query): <a href="' + data.api_endpoints.atom_feed_query + '" target="_blank" rel="noopener noreferrer">' + data.api_endpoints.atom_feed_query + '</a></div></div>';
-                    }
-                    
-                    resultDiv.innerHTML = html;
                 }
             } catch (e) {
                 resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
