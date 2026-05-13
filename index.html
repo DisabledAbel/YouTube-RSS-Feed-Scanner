@@ -207,9 +207,13 @@
                 });
                 
                 const data = await response.json();
-                
+
                 if (data.error) {
-                    resultDiv.innerHTML = '<div class="error">' + data.error + '</div>';
+                    resultDiv.innerHTML = '';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.textContent = data.error;
+                    resultDiv.appendChild(errorDiv);
                 } else {
                     // Channel info
                     const channelInfo = document.createElement('div');
@@ -303,17 +307,13 @@
 
                         resultDiv.appendChild(apiOutput);
                     }
-                    if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
-                        html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
-                        html += '<div class="feed-link">POST JSON: ' + data.api_endpoints.json_api + '</div>';
-                        html += '<div class="feed-link">Atom (path): ' + data.api_endpoints.atom_feed_path + '</div>';
-                        html += '<div class="feed-link">Atom (query): ' + data.api_endpoints.atom_feed_query + '</div></div>';
-                    }
-                    
-                    resultDiv.innerHTML = html;
                 }
             } catch (e) {
-                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+                resultDiv.innerHTML = '';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = 'Error: ' + e.message;
+                resultDiv.appendChild(errorDiv);
             }
             
             btn.disabled = false;
