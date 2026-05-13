@@ -279,7 +279,7 @@ def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = 
         api_endpoints = {
             "json_api": f"{base_url.rstrip('/')}/api/feed",
             "atom_feed_path": f"{base_url.rstrip('/')}/feed/{encoded_url}",
-            "atom_feed_query": f"{base_url.rstrip('/')}/feed?channel_url={urllib.parse.quote(url)}",
+            "atom_feed_query": f"{base_url.rstrip('/')}/feed/?channel_url={urllib.parse.quote(url)}",
         }
 
     return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints
