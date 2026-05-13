@@ -349,7 +349,7 @@ Supported URL types:
             if channel_name:
                 print(f"Channel: {channel_name}")
             print(f"Channel ID: {channel_id}")
-            print(f"\nYouTube RSS (often broken): {youtube_rss}")
+            print(f"\nYouTube RSS: {youtube_rss}")
             if invidious_rss:
                 print(f"Invidious RSS: {invidious_rss}")
             if atom_feed:

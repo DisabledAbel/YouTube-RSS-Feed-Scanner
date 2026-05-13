@@ -106,6 +106,24 @@
             margin-top: 15px;
             text-align: center;
         }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e7f3f;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease-in-out;
+            z-index: 9999;
+        }
+        .toast.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -133,6 +151,7 @@
     <div id="result"></div>
     
     <p class="note">Enter a YouTube channel URL to get its RSS feed</p>
+    <div id="toast" class="toast"></div>
     
     <script>
         function setPreset(channel) {
