@@ -26,7 +26,7 @@ def api_feed():
     """API endpoint for getting feed data."""
     # Try query parameters first, then fall back to JSON body
     url = request.args.get('url')
-    data = request.get_json() if not url else {}
+    data = request.get_json(silent=True) or {}
 
     if not url:
         if not data or 'url' not in data:
@@ -40,9 +40,7 @@ def api_feed():
         url = data['url']
     else:
         # Merge query args with JSON body if present
-        if data:
-            data = dict(data)
-        else:
+        if not isinstance(data, dict):
             data = {}
     if not url:
         return jsonify({'error': 'Missing url parameter'}), 400
