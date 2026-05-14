@@ -122,6 +122,16 @@
         <input type="text" id="channelUrl" placeholder="https://www.youtube.com/@channel or https://www.youtube.com/c/username">
     </div>
     
+    <div class="input-group">
+        <label>Feed Type</label>
+        <select id="feedType">
+            <option value="all">All (combined)</option>
+            <option value="videos">Videos only</option>
+            <option value="shorts">Shorts only</option>
+            <option value="live">Live streams only</option>
+        </select>
+    </div>
+
     <button id="getFeedBtn" onclick="getFeed()">Get RSS Feed</button>
     <div class="input-group" style="margin-top: 12px;">
         <label>
@@ -184,11 +194,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         url: url,
-                        include_api_endpoints: document.getElementById('includeApiEndpoints').checked
+                        include_api_endpoints: document.getElementById('includeApiEndpoints').checked,
+                        feed_type: document.getElementById('feedType').value
                     })
                 });
                 
                 const data = await response.json();
+                const selectedFeedUrl = data.selected_feed_path ? `${window.location.origin}${data.selected_feed_path}` : (data.selected_feed || data.youtube_rss);
                 
                 if (data.error) {
                     resultDiv.innerHTML = '<div class="error">' + data.error + '</div>';
@@ -200,13 +212,20 @@
                     html += '<p><strong>Channel ID:</strong> ' + data.channel_id + '</p>';
                     html += '</div>';
                     
-                    html += '<div class="feed-row"><div class="feed-label">YouTube RSS:</div>';
-                    html += '<div class="feed-link">' + data.youtube_rss + '</div>';
-                    html += '<button class="copy-btn" data-encoded="' + encodeURIComponent(data.youtube_rss) + '">Copy YouTube RSS</button></div>';
+                    html += '<div class="feed-row"><div class="feed-label">Selected RSS Feed:</div>';
+                    html += '<div class="feed-link">' + selectedFeedUrl + '</div>';
+                    html += '<button class="copy-btn" data-encoded="' + encodeURIComponent(selectedFeedUrl) + '">Copy Selected RSS</button></div>';
                     
+                    if (data.official_feeds) {
+                        html += '<div class="atom-output"><div class="feed-label">Official YouTube Feeds:</div>';
+                        ['selected','all','videos','shorts','live'].forEach(function(k){ if (data.official_feeds[k]) { html += '<div class="feed-link">' + k + ': ' + data.official_feeds[k] + '</div>'; }});
+                        html += '</div>';
+                    }
+
                     if (data.api_endpoints && Object.keys(data.api_endpoints).length > 0) {
                         html += '<div class="atom-output"><div class="feed-label">API Endpoints:</div>';
                         html += '<div class="feed-link">POST JSON: ' + data.api_endpoints.json_api + '</div>';
+                        if (data.api_endpoints.atom_feed_path) { html += '<div class="feed-link">Selected Feed: ' + data.api_endpoints.atom_feed_path + '</div>'; }
                         html += '</div>';
                     }
                     

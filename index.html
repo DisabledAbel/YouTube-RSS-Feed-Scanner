@@ -122,6 +122,16 @@
         <input type="text" id="channelUrl" placeholder="https://www.youtube.com/@channel or https://www.youtube.com/c/username">
     </div>
     
+    <div class="input-group">
+        <label>Feed Type</label>
+        <select id="feedType">
+            <option value="all">All (combined)</option>
+            <option value="videos">Videos only</option>
+            <option value="shorts">Shorts only</option>
+            <option value="live">Live streams only</option>
+        </select>
+    </div>
+
     <button id="getFeedBtn" onclick="getFeed()">Get RSS Feed</button>
     <div class="input-group" style="margin-top: 12px;">
         <label>
@@ -193,11 +203,13 @@
                     body: JSON.stringify({
                         url: url,
                         include_api_endpoints: document.getElementById('includeApiEndpoints').checked,
+                        feed_type: document.getElementById('feedType').value,
                         discord_webhook_url: document.getElementById('discordWebhookUrl').value.trim()
                     })
                 });
                 
                 const data = await response.json();
+                const selectedFeedUrl = data.selected_feed_path ? `${window.location.origin}${data.selected_feed_path}` : (data.selected_feed || data.youtube_rss);
 
                 if (data.error) {
                     resultDiv.innerHTML = '';
@@ -234,20 +246,37 @@
 
                     const feedLabel = document.createElement('div');
                     feedLabel.className = 'feed-label';
-                    feedLabel.textContent = 'YouTube RSS:';
+                    feedLabel.textContent = 'Selected RSS Feed:';
                     feedRow.appendChild(feedLabel);
 
                     const feedLink = document.createElement('div');
                     feedLink.className = 'feed-link';
-                    feedLink.textContent = data.youtube_rss;
+                    feedLink.textContent = selectedFeedUrl;
                     feedRow.appendChild(feedLink);
 
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'copy-btn';
-                    copyBtn.textContent = 'Copy YouTube RSS';
-                    copyBtn.addEventListener('click', () => copyText(data.youtube_rss));
+                    copyBtn.textContent = 'Copy Selected RSS';
+                    copyBtn.addEventListener('click', () => copyText(selectedFeedUrl));
                     feedRow.appendChild(copyBtn);
                     resultDiv.appendChild(feedRow);
+                    if (data.official_feeds) {
+                        const officialBox = document.createElement('div');
+                        officialBox.className = 'atom-output';
+                        const label = document.createElement('div');
+                        label.className = 'feed-label';
+                        label.textContent = 'Official YouTube Feeds:';
+                        officialBox.appendChild(label);
+                        ['selected','all','videos','shorts','live'].forEach((key) => {
+                            if (!data.official_feeds[key]) return;
+                            const row = document.createElement('div');
+                            row.className = 'feed-link';
+                            row.textContent = `${key}: ${data.official_feeds[key]}`;
+                            officialBox.appendChild(row);
+                        });
+                        resultDiv.appendChild(officialBox);
+                    }
+
 
 
                     // API endpoints
