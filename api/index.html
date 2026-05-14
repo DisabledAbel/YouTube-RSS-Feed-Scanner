@@ -182,13 +182,8 @@
 
         function openInReader(encodedText) {
             const feedUrl = decodeURIComponent(encodedText);
-            const feedProtocolUrl = feedUrl.startsWith('https://')
-                ? 'feed://' + feedUrl.slice('https://'.length)
-                : feedUrl.startsWith('http://')
-                    ? 'feed://' + feedUrl.slice('http://'.length)
-                    : feedUrl;
-
-            window.open(feedProtocolUrl, '_blank', 'noopener,noreferrer');
+            const feedlySubscribeUrl = 'https://feedly.com/i/subscription/feed/' + encodeURIComponent(feedUrl);
+            window.open(feedlySubscribeUrl, '_blank', 'noopener,noreferrer');
         }
 
         async function getFeed() {
