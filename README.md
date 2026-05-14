@@ -166,6 +166,24 @@ Pass `discord_webhook_url` to `/api/feed` and the app will send a message to Dis
 ---
 
 
+
+## Self-Hosted Terminal Reader
+
+If you want to host your own simple feed reader directly in your terminal, use:
+
+```bash
+./scripts/run_terminal_reader.sh "https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw"
+```
+
+Optional flags:
+
+```bash
+./scripts/run_terminal_reader.sh "<feed_url>" --interval 60 --limit 15
+```
+
+- `--interval`: refresh frequency in seconds.
+- `--limit`: max entries shown per refresh.
+
 ## CLI RSS Reader (Python)
 
 If you are running locally and want to read recent items directly in the terminal:
