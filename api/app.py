@@ -143,62 +143,29 @@ def feed_usage():
 
 
 @app.route('/feed/<feed_type>/<path:channel_url>')
+@cache.cached(timeout=300, key_prefix=lambda: f"feed_{request.path}")
 def get_feed(feed_type, channel_url=None):
-    """Generate RSS feed for given channel."""
+    """Generate RSS feed for given channel. Cached for 5 minutes."""
     if channel_url is None:
         return "Usage: /feed/{type}/{youtube_channel_url}"
 
     if feed_type not in ("all", "videos", "shorts", "live"):
         return Response("Invalid feed type", status=400)
-    
+
     # Decode URL-encoded parts
     channel_url = urllib.parse.unquote(channel_url)
-    
+
     # Reconstruct full URL (Flask captures everything after /feed/)
     if not channel_url.startswith('http'):
         full_url = f"https://{channel_url}"
     else:
         full_url = channel_url
-    
+
     try:
         _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url, feed_type=feed_type)
-        
+
         if atom_feed:
             # Fix channel name in feed
-            if channel_name:
-                atom_feed = atom_feed.replace(
-                    f">{channel_id or channel_id} - YouTube Videos",
-                    f">{channel_name} - YouTube Videos"
-                )
-                atom_feed = atom_feed.replace(
-                    f"<name>{channel_id or channel_id}</name>",
-                    f"<name>{channel_name}</name>"
-                )
-            return Response(atom_feed, mimetype='application/xml')
-        else:
-            return Response("No videos found", status=404)
-    except Exception as e:
-        return Response(f"Error: {str(e)}", status=500)
-
-
-@app.route('/feed/<feed_type>/<path:channel>', methods=['GET'])
-@cache.cached(timeout=300, key_prefix=lambda: f"feed_{request.path}")
-def get_cached_feed(feed_type, channel):
-    """Cached RSS feed endpoint - updates every 5 minutes."""
-    if feed_type not in ("all", "videos", "shorts", "live"):
-        return Response("Invalid feed type", status=400)
-
-    # Clean channel from URL
-    channel = urllib.parse.unquote(channel)
-    if channel.startswith('http'):
-        full_url = channel
-    else:
-        full_url = f"https://{channel}"
-    
-    try:
-        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url, feed_type=feed_type)
-        
-        if atom_feed:
             if channel_name:
                 atom_feed = atom_feed.replace(
                     f">{channel_id or channel_id} - YouTube Videos",
