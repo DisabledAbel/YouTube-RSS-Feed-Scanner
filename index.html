@@ -260,6 +260,23 @@
                     copyBtn.addEventListener('click', () => copyText((data.selected_feed || data.youtube_rss)));
                     feedRow.appendChild(copyBtn);
                     resultDiv.appendChild(feedRow);
+                    if (data.official_feeds) {
+                        const officialBox = document.createElement('div');
+                        officialBox.className = 'atom-output';
+                        const label = document.createElement('div');
+                        label.className = 'feed-label';
+                        label.textContent = 'Official YouTube Feeds:';
+                        officialBox.appendChild(label);
+                        ['selected','all','videos','shorts','live'].forEach((key) => {
+                            if (!data.official_feeds[key]) return;
+                            const row = document.createElement('div');
+                            row.className = 'feed-link';
+                            row.textContent = `${key}: ${data.official_feeds[key]}`;
+                            officialBox.appendChild(row);
+                        });
+                        resultDiv.appendChild(officialBox);
+                    }
+
 
 
                     // API endpoints
