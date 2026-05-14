@@ -267,8 +267,7 @@
                         label.className = 'feed-label';
                         label.textContent = 'Official YouTube Feeds:';
                         officialBox.appendChild(label);
-                        ['selected','all','videos','shorts','live'].forEach((key) => {
-                            if (!data.official_feeds[key]) return;
+                        Object.entries(data.official_feeds).forEach(([key, value]) => {
                             const row = document.createElement('div');
                             row.className = 'feed-row';
 
@@ -279,13 +278,13 @@
 
                             const feedLink = document.createElement('div');
                             feedLink.className = 'feed-link';
-                            feedLink.textContent = data.official_feeds[key];
+                            feedLink.textContent = value;
                             row.appendChild(feedLink);
 
                             const copyBtn = document.createElement('button');
                             copyBtn.className = 'copy-btn';
                             copyBtn.textContent = `Copy ${key} RSS`;
-                            copyBtn.addEventListener('click', () => copyText(data.official_feeds[key]));
+                            copyBtn.addEventListener('click', () => copyText(value));
                             row.appendChild(copyBtn);
 
                             officialBox.appendChild(row);
