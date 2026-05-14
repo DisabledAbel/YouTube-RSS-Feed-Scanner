@@ -25,33 +25,45 @@ INVIDIOUS_API_ENDPOINTS = [
 YOUTUBE_RSS_TEMPLATE = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 
 
-def get_channel_videos(channel_id: str) -> list[dict]:
-    """Fetch recent videos from channel by scraping."""
+def build_youtube_feed_url(channel_id: str, feed_type: str = "all") -> str:
+    """Build YouTube RSS URL with optional hidden feed filters."""
+    base = YOUTUBE_RSS_TEMPLATE.format(channel_id=channel_id)
+    if feed_type == "shorts":
+        return f"{base}&shorts=1"
+    if feed_type == "live":
+        return f"{base}&live=1"
+    return base
+
+
+def _extract_video_ids_from_page(html: str, limit: int = 10) -> list[str]:
+    """Extract unique YouTube video IDs from page HTML."""
+    video_ids: list[str] = []
+    seen_ids: set[str] = set()
+    for match in re.finditer(r'"videoId":"([a-zA-Z0-9_-]{11})"', html):
+        video_id = match.group(1)
+        if video_id not in seen_ids:
+            seen_ids.add(video_id)
+            video_ids.append(video_id)
+        if len(video_ids) >= limit:
+            break
+    return video_ids
+
+
+def get_channel_videos(channel_id: str, feed_type: str = "all", limit: int = 10) -> list[dict]:
+    """Fetch recent videos from channel pages by scraping."""
+    page_path_by_type = {
+        "all": "videos",
+        "videos": "videos",
+        "shorts": "shorts",
+        "live": "streams",
+    }
+    page_path = page_path_by_type.get(feed_type, "videos")
+
     try:
-        # Get channel home page to find uploads playlist ID
-        channel_url = f"https://www.youtube.com/channel/{channel_id}"
-        html = fetch_url(channel_url)
-        
-        # Find uploads playlist ID
-        uploads_match = re.search(r'"browseId":"([^"]+)","browseEndpoint":\{" browsePath":"[^"]*\/video', html)
-        
-        videos = []
-        seen_ids = set()
-        
-        # Extract from videos page
-        videos_url = f"https://www.youtube.com/channel/{channel_id}/videos"
-        videos_html = fetch_url(videos_url)
-        
-        vid_pattern = re.compile(r'"videoId":"([a-zA-Z0-9_-]{11})"')
-        for vid_match in vid_pattern.finditer(videos_html):
-            vid = vid_match.group(1)
-            if vid not in seen_ids:
-                seen_ids.add(vid)
-                videos.append({'videoId': vid, 'title': f'Video {vid}', 'published': ''})
-                if len(videos) >= 10:
-                    break
-        
-        return videos
+        page_url = f"https://www.youtube.com/channel/{channel_id}/{page_path}"
+        page_html = fetch_url(page_url)
+        video_ids = _extract_video_ids_from_page(page_html, limit=limit)
+        return [{'videoId': vid, 'title': f'Video {vid}', 'published': ''} for vid in video_ids]
     except Exception:
         return []
 
@@ -289,18 +301,18 @@ def read_feed(feed_url: str, limit: int = 10) -> list[dict]:
     xml = fetch_url(feed_url)
     return parse_rss_entries(xml, limit=limit)
 
-def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080") -> tuple:
+def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080", feed_type: str = "all") -> tuple:
     """Get RSS feed data for a YouTube channel.
     
     Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints)
     """
     channel_id, channel_name = extract_channel_id(url)
     
-    # YouTube's native RSS URL (mostly broken but included for reference)
-    youtube_rss = YOUTUBE_RSS_TEMPLATE.format(channel_id=channel_id)
+    # YouTube RSS URL (supports hidden filtered variants for shorts/live)
+    youtube_rss = build_youtube_feed_url(channel_id, feed_type=feed_type)
     
-    # Try to get videos from YouTube channel page
-    videos = get_channel_videos(channel_id)
+    # Try to get videos from the selected YouTube channel page
+    videos = get_channel_videos(channel_id, feed_type=feed_type)
     video_count = len(videos)
     
     # Generate Atom feed if we got videos
@@ -324,8 +336,11 @@ def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = 
         encoded_url = urllib.parse.quote(url, safe="")
         api_endpoints = {
             "json_api": f"{base_url.rstrip('/')}/api/feed",
-            "atom_feed_path": f"{base_url.rstrip('/')}/feed/{encoded_url}",
-            "atom_feed_query": f"{base_url.rstrip('/')}/feed/?channel_url={urllib.parse.quote(url)}",
+            "atom_feed_path": f"{base_url.rstrip('/')}/feed/all/{encoded_url}",
+            "atom_feed_query": f"{base_url.rstrip('/')}/feed/all/{urllib.parse.quote(url, safe="")}",
+            "videos_feed": f"{base_url.rstrip('/')}/feed/videos/{encoded_url}",
+            "shorts_feed": f"{base_url.rstrip('/')}/feed/shorts/{encoded_url}",
+            "live_feed": f"{base_url.rstrip('/')}/feed/live/{encoded_url}",
         }
 
     return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints
