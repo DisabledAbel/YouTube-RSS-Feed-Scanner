@@ -67,6 +67,14 @@
             font-size: 12px;
             background: #444;
         }
+        .open-reader-btn {
+            margin-top: 6px;
+            margin-left: 8px;
+            width: auto;
+            padding: 7px 10px;
+            font-size: 12px;
+            background: #0066cc;
+        }
         .feed-label { color: #aaa; font-size: 12px; margin-bottom: 4px; }
         .atom-output {
             margin-top: 15px;
@@ -167,6 +175,17 @@
             }
         }
 
+
+        function openInReader(feedUrl) {
+            const feedProtocolUrl = feedUrl.startsWith('https://')
+                ? 'feed://' + feedUrl.slice('https://'.length)
+                : feedUrl.startsWith('http://')
+                    ? 'feed://' + feedUrl.slice('http://'.length)
+                    : feedUrl;
+
+            window.open(feedProtocolUrl, '_blank', 'noopener,noreferrer');
+        }
+
         async function getFeed() {
             const url = document.getElementById('channelUrl').value.trim();
             const resultDiv = document.getElementById('result');
@@ -259,6 +278,12 @@
                     copyBtn.textContent = 'Copy Selected RSS';
                     copyBtn.addEventListener('click', () => copyText((data.selected_feed || data.youtube_rss)));
                     feedRow.appendChild(copyBtn);
+
+                    const openReaderBtn = document.createElement('button');
+                    openReaderBtn.className = 'open-reader-btn';
+                    openReaderBtn.textContent = 'Open in Reader';
+                    openReaderBtn.addEventListener('click', () => openInReader((data.selected_feed || data.youtube_rss)));
+                    feedRow.appendChild(openReaderBtn);
                     resultDiv.appendChild(feedRow);
                     if (data.official_feeds) {
                         const officialBox = document.createElement('div');
