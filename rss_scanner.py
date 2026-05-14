@@ -302,7 +302,11 @@ def build_official_feeds(channel_id: str, feed_type: str = "all") -> dict[str, s
     youtube_feed = build_youtube_feed_url(channel_id, feed_type="all")
     feeds = {
         "youtube": youtube_feed,
-        "selected": youtube_feed,
+        "all": build_youtube_feed_url(channel_id, feed_type="all"),
+        "videos": build_youtube_feed_url(channel_id, feed_type="videos"),
+        "shorts": build_youtube_feed_url(channel_id, feed_type="shorts"),
+        "live": build_youtube_feed_url(channel_id, feed_type="live"),
+        "selected": build_youtube_feed_url(channel_id, feed_type=feed_type),
     }
     return feeds
 
