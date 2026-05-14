@@ -224,7 +224,7 @@ Monitor and archive newly uploaded videos automatically.
 
 ---
 
-# Deployment
+# Cloud Deployment 
 
 ## Vercel
 
