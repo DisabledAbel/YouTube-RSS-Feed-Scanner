@@ -124,7 +124,7 @@ const encodedUrl = encodeURIComponent(channelUrl);
 fetch(`/feed/videos/${encodedUrl}`)
 ```
 
-**Alternative (recommended):** Use query parameters to avoid encoding issues:
+**Alternative (recommended):** Use URL-encoded paths to avoid encoding issues:
 
 ```bash
 /feed/all/https%3A%2F%2Fwww.youtube.com%2Fchannel%2FUCXuqSBlHAE6Xw-yeJA0Tunw

@@ -327,7 +327,7 @@ def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = 
         api_endpoints = {
             "json_api": f"{base_url.rstrip('/')}/api/feed",
             "atom_feed_path": f"{base_url.rstrip('/')}/feed/all/{encoded_url}",
-            "atom_feed_query": f"{base_url.rstrip('/')}/feed/all/{urllib.parse.quote(url, safe="")}",
+            "atom_feed_query": f"{base_url.rstrip('/')}/feed/all/{urllib.parse.quote(url, safe='')}",
             "videos_feed": f"{base_url.rstrip('/')}/feed/videos/{encoded_url}",
             "shorts_feed": f"{base_url.rstrip('/')}/feed/shorts/{encoded_url}",
             "live_feed": f"{base_url.rstrip('/')}/feed/live/{encoded_url}",
