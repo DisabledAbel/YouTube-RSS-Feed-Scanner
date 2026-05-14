@@ -209,6 +209,7 @@
                 });
                 
                 const data = await response.json();
+                const selectedFeedUrl = data.selected_feed_path ? `${window.location.origin}${data.selected_feed_path}` : (data.selected_feed || data.youtube_rss);
 
                 if (data.error) {
                     resultDiv.innerHTML = '';
