@@ -70,6 +70,9 @@ def api_feed():
             feed_type=feed_type
         )
 
+        encoded_url = urllib.parse.quote(url, safe="")
+        selected_feed = f"{base_url}/feed/{feed_type}/{encoded_url}"
+
         discord_result = None
         discord_webhook_url = data.get('discord_webhook_url', '').strip()
         if discord_webhook_url:
@@ -84,6 +87,8 @@ def api_feed():
         
         return Response(json.dumps({
             'youtube_rss': youtube_rss,
+            'selected_feed': selected_feed,
+            'feed_type': feed_type,
             'channel_id': channel_id,
             'channel_name': channel_name,
             'atom_feed': atom_feed,

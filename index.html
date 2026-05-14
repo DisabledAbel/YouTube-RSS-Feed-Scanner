@@ -245,18 +245,18 @@
 
                     const feedLabel = document.createElement('div');
                     feedLabel.className = 'feed-label';
-                    feedLabel.textContent = 'YouTube RSS:';
+                    feedLabel.textContent = 'Selected RSS Feed:';
                     feedRow.appendChild(feedLabel);
 
                     const feedLink = document.createElement('div');
                     feedLink.className = 'feed-link';
-                    feedLink.textContent = data.youtube_rss;
+                    feedLink.textContent = (data.selected_feed || data.youtube_rss);
                     feedRow.appendChild(feedLink);
 
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'copy-btn';
-                    copyBtn.textContent = 'Copy YouTube RSS';
-                    copyBtn.addEventListener('click', () => copyText(data.youtube_rss));
+                    copyBtn.textContent = 'Copy Selected RSS';
+                    copyBtn.addEventListener('click', () => copyText((data.selected_feed || data.youtube_rss)));
                     feedRow.appendChild(copyBtn);
                     resultDiv.appendChild(feedRow);
 
