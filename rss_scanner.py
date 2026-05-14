@@ -291,6 +291,10 @@ def read_feed(feed_url: str, limit: int = 10) -> list[dict]:
     xml = fetch_url(feed_url)
     return parse_rss_entries(xml, limit=limit)
 
+def build_youtube_feed_url(channel_id: str, feed_type: str = None) -> str:
+    """Build a YouTube RSS feed URL for the given channel ID."""
+    return f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+
 def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080", feed_type: str = "all") -> tuple:
     """Get RSS feed data for a YouTube channel.
     
