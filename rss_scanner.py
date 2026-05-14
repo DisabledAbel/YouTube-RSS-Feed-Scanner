@@ -298,16 +298,12 @@ def build_youtube_feed_url(channel_id: str, feed_type: str = None) -> str:
 
 
 def build_official_feeds(channel_id: str, feed_type: str = "all") -> dict[str, str]:
-    """Return official YouTube feed URLs keyed by feed type."""
-    all_feed = build_youtube_feed_url(channel_id, feed_type="all")
+    """Return official YouTube feed URLs without duplicating identical links."""
+    youtube_feed = build_youtube_feed_url(channel_id, feed_type="all")
     feeds = {
-        "all": all_feed,
-        "videos": all_feed,
-        "shorts": all_feed,
-        "live": all_feed,
+        "youtube": youtube_feed,
+        "selected": youtube_feed,
     }
-    selected_type = feed_type if feed_type in feeds else "all"
-    feeds["selected"] = feeds[selected_type]
     return feeds
 
 def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080", feed_type: str = "all") -> tuple:
