@@ -302,7 +302,11 @@ def build_official_feeds(channel_id: str, feed_type: str = "all") -> dict[str, s
     youtube_feed = build_youtube_feed_url(channel_id, feed_type="all")
     feeds = {
         "youtube": youtube_feed,
-        "selected": youtube_feed,
+        "all": build_youtube_feed_url(channel_id, feed_type="all"),
+        "videos": build_youtube_feed_url(channel_id, feed_type="videos"),
+        "shorts": build_youtube_feed_url(channel_id, feed_type="shorts"),
+        "live": build_youtube_feed_url(channel_id, feed_type="live"),
+        "selected": build_youtube_feed_url(channel_id, feed_type=feed_type),
     }
     return feeds
 
@@ -395,7 +399,7 @@ Supported URL types:
         url = "https://" + url
     
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, official_feeds = get_rss_feed(
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, _ = get_rss_feed(
             url,
             include_api_endpoints=args.include_api_endpoints,
             base_url=args.base_url

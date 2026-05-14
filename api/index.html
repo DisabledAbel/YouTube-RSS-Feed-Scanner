@@ -224,12 +224,9 @@
                     
                     if (data.official_feeds) {
                         html += '<div class="atom-output"><div class="feed-label">Official YouTube Feeds:</div>';
-                        var seenOfficialUrls = new Set();
                         Object.entries(data.official_feeds).forEach(function(entry){
                             var k = entry[0];
                             var v = entry[1];
-                            if (!v || seenOfficialUrls.has(v)) return;
-                            seenOfficialUrls.add(v);
                             html += '<div class="feed-row">';
                             html += '<div class="feed-label">Official (' + k + '):</div>';
                             html += '<div class="feed-link">' + v + '</div>';
@@ -269,6 +266,16 @@
         
         document.getElementById('channelUrl').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') getFeed();
+        });
+
+        // Event delegation for dynamically added copy buttons
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('copy-btn')) {
+                const encoded = e.target.getAttribute('data-encoded');
+                if (encoded) {
+                    copyEncodedText(encoded);
+                }
+            }
         });
     </script>
 </body>

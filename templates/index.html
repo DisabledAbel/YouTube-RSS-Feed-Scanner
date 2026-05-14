@@ -218,12 +218,9 @@
                     
                     if (data.official_feeds) {
                         html += '<div class="atom-output"><div class="feed-label">Official YouTube Feeds:</div>';
-                        var seenOfficialUrls = new Set();
                         Object.entries(data.official_feeds).forEach(function(entry){
                             var k = entry[0];
                             var v = entry[1];
-                            if (!v || seenOfficialUrls.has(v)) return;
-                            seenOfficialUrls.add(v);
                             html += '<div class="feed-row">';
                             html += '<div class="feed-label">Official (' + k + '):</div>';
                             html += '<div class="feed-link">' + v + '</div>';

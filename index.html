@@ -267,10 +267,7 @@
                         label.className = 'feed-label';
                         label.textContent = 'Official YouTube Feeds:';
                         officialBox.appendChild(label);
-                        const seenOfficialUrls = new Set();
                         Object.entries(data.official_feeds).forEach(([key, value]) => {
-                            if (!value || seenOfficialUrls.has(value)) return;
-                            seenOfficialUrls.add(value);
                             const row = document.createElement('div');
                             row.className = 'feed-row';
 
