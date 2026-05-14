@@ -50,6 +50,9 @@ def api_feed():
     try:
         # Normalize include_api_endpoints to boolean
         raw_value = data.get('include_api_endpoints', False)
+        feed_type = str(data.get('feed_type', request.args.get('feed_type', 'all'))).lower().strip()
+        if feed_type not in ('all', 'videos', 'shorts', 'live'):
+            return jsonify({'error': 'Invalid feed_type. Use all, videos, shorts, or live.'}), 400
         if isinstance(raw_value, bool):
             include_api_endpoints = raw_value
         elif isinstance(raw_value, str):
@@ -63,7 +66,8 @@ def api_feed():
         youtube_rss, channel_id, channel_name, atom_feed, video_count, _, api_endpoints = rss_scanner.get_rss_feed(
             url,
             include_api_endpoints=include_api_endpoints,
-            base_url=base_url
+            base_url=base_url,
+            feed_type=feed_type
         )
 
         discord_result = None

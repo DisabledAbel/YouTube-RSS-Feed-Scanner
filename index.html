@@ -122,6 +122,16 @@
         <input type="text" id="channelUrl" placeholder="https://www.youtube.com/@channel or https://www.youtube.com/c/username">
     </div>
     
+    <div class="input-group">
+        <label>Feed Type</label>
+        <select id="feedType">
+            <option value="all">All (combined)</option>
+            <option value="videos">Videos only</option>
+            <option value="shorts">Shorts only</option>
+            <option value="live">Live streams only</option>
+        </select>
+    </div>
+
     <button id="getFeedBtn" onclick="getFeed()">Get RSS Feed</button>
     <div class="input-group" style="margin-top: 12px;">
         <label>
@@ -193,6 +203,7 @@
                     body: JSON.stringify({
                         url: url,
                         include_api_endpoints: document.getElementById('includeApiEndpoints').checked,
+                        feed_type: document.getElementById('feedType').value,
                         discord_webhook_url: document.getElementById('discordWebhookUrl').value.trim()
                     })
                 });
