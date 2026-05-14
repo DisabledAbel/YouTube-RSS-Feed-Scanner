@@ -134,11 +134,18 @@ def send_to_discord(webhook_url: str, youtube_rss: str, channel_id: str | None, 
 
 
 @app.route('/feed/')
-@app.route('/feed/<path:channel_url>')
-def get_feed(channel_url=None):
+def feed_usage():
+    return "Usage: /feed/{type}/{youtube_channel_url} where type is all|videos|shorts|live"
+
+
+@app.route('/feed/<feed_type>/<path:channel_url>')
+def get_feed(feed_type, channel_url=None):
     """Generate RSS feed for given channel."""
     if channel_url is None:
-        return "Usage: /feed/{youtube_channel_url}"
+        return "Usage: /feed/{type}/{youtube_channel_url}"
+
+    if feed_type not in ("all", "videos", "shorts", "live"):
+        return Response("Invalid feed type", status=400)
     
     # Decode URL-encoded parts
     channel_url = urllib.parse.unquote(channel_url)
@@ -150,7 +157,7 @@ def get_feed(channel_url=None):
         full_url = channel_url
     
     try:
-        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url)
+        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url, feed_type=feed_type)
         
         if atom_feed:
             # Fix channel name in feed
@@ -170,10 +177,13 @@ def get_feed(channel_url=None):
         return Response(f"Error: {str(e)}", status=500)
 
 
-@app.route('/feed/<path:channel>', methods=['GET'])
-@cache.cached(timeout=300, key_prefix='feed_')
-def get_cached_feed(channel):
+@app.route('/feed/<feed_type>/<path:channel>', methods=['GET'])
+@cache.cached(timeout=300, key_prefix=lambda: f"feed_{request.path}")
+def get_cached_feed(feed_type, channel):
     """Cached RSS feed endpoint - updates every 5 minutes."""
+    if feed_type not in ("all", "videos", "shorts", "live"):
+        return Response("Invalid feed type", status=400)
+
     # Clean channel from URL
     channel = urllib.parse.unquote(channel)
     if channel.startswith('http'):
@@ -182,7 +192,7 @@ def get_cached_feed(channel):
         full_url = f"https://{channel}"
     
     try:
-        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url)
+        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url, feed_type=feed_type)
         
         if atom_feed:
             if channel_name:
