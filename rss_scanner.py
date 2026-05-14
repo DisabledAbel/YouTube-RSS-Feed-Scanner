@@ -399,7 +399,7 @@ Supported URL types:
         url = "https://" + url
     
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, official_feeds = get_rss_feed(
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, _ = get_rss_feed(
             url,
             include_api_endpoints=args.include_api_endpoints,
             base_url=args.base_url
