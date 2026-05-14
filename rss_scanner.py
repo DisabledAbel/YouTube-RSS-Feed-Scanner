@@ -25,16 +25,6 @@ INVIDIOUS_API_ENDPOINTS = [
 YOUTUBE_RSS_TEMPLATE = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 
 
-def build_youtube_feed_url(channel_id: str, feed_type: str = "all") -> str:
-    """Build YouTube RSS URL with optional hidden feed filters."""
-    base = YOUTUBE_RSS_TEMPLATE.format(channel_id=channel_id)
-    if feed_type == "shorts":
-        return f"{base}&shorts=1"
-    if feed_type == "live":
-        return f"{base}&live=1"
-    return base
-
-
 def _extract_video_ids_from_page(html: str, limit: int = 10) -> list[str]:
     """Extract unique YouTube video IDs from page HTML."""
     video_ids: list[str] = []
@@ -337,7 +327,7 @@ def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = 
         api_endpoints = {
             "json_api": f"{base_url.rstrip('/')}/api/feed",
             "atom_feed_path": f"{base_url.rstrip('/')}/feed/all/{encoded_url}",
-            "atom_feed_query": f"{base_url.rstrip('/')}/feed/all/{urllib.parse.quote(url, safe="")}",
+            "atom_feed_query": f"{base_url.rstrip('/')}/feed/all/{urllib.parse.quote(url, safe='')}",
             "videos_feed": f"{base_url.rstrip('/')}/feed/videos/{encoded_url}",
             "shorts_feed": f"{base_url.rstrip('/')}/feed/shorts/{encoded_url}",
             "live_feed": f"{base_url.rstrip('/')}/feed/live/{encoded_url}",
