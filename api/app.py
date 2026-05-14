@@ -63,7 +63,7 @@ def api_feed():
             include_api_endpoints = False
 
         base_url = request.host_url.rstrip('/')
-        youtube_rss, channel_id, channel_name, atom_feed, video_count, _, api_endpoints = rss_scanner.get_rss_feed(
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, _, api_endpoints, official_feeds = rss_scanner.get_rss_feed(
             url,
             include_api_endpoints=include_api_endpoints,
             base_url=base_url,
@@ -94,6 +94,7 @@ def api_feed():
             'atom_feed': atom_feed,
             'video_count': video_count,
             'api_endpoints': api_endpoints,
+            'official_feeds': official_feeds,
             'discord': discord_result
         }), mimetype='application/json')
     except Exception as e:
@@ -167,7 +168,7 @@ def get_feed(feed_type, channel_url=None):
         full_url = channel_url
 
     try:
-        _, channel_id, channel_name, atom_feed, video_count, _, _ = rss_scanner.get_rss_feed(full_url, feed_type=feed_type)
+        _, channel_id, channel_name, atom_feed, video_count, _, _, _ = rss_scanner.get_rss_feed(full_url, feed_type=feed_type)
 
         if atom_feed:
             # Fix channel name in feed
