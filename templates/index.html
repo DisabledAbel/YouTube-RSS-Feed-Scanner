@@ -180,9 +180,9 @@
             // Many desktop/mobile feed apps register the feed:// protocol.
             // Convert https:// URLs to feed:// where possible to trigger RSS readers.
             const feedProtocolUrl = feedUrl.startsWith('https://')
-                ? 'feed://' + feedUrl.slice('https://'.length)
+                ? 'feed:' + feedUrl
                 : feedUrl.startsWith('http://')
-                    ? 'feed://' + feedUrl.slice('http://'.length)
+                    ? 'feed:' + feedUrl
                     : feedUrl;
 
             window.open(feedProtocolUrl, '_blank', 'noopener,noreferrer');
