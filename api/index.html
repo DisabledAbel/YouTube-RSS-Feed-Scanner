@@ -267,6 +267,16 @@
         document.getElementById('channelUrl').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') getFeed();
         });
+
+        // Event delegation for dynamically added copy buttons
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('copy-btn')) {
+                const encoded = e.target.getAttribute('data-encoded');
+                if (encoded) {
+                    copyEncodedText(encoded);
+                }
+            }
+        });
     </script>
 </body>
 </html>
