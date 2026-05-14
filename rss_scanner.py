@@ -91,7 +91,7 @@ def generate_atom_feed(channel_id: str, channel_name: str, videos: list[dict]) -
     return feed
 
 PATTERNS = [
-    (r"/channel/([a-zA-Z0-9_-]{22})", "channel"),
+    (r"/channel/(UC[a-zA-Z0-9_-]{22})", "channel"),
     (r"/c/([a-zA-Z0-9_-]+)", "custom"),
     (r"/user/([a-zA-Z0-9_-]+)", "user"),
     (r"/@([a-zA-Z0-9_-]+)", "handle"),
@@ -295,15 +295,27 @@ def build_youtube_feed_url(channel_id: str, feed_type: str = None) -> str:
     """Build a YouTube RSS feed URL for the given channel ID."""
     return f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 
+
+
+def build_official_feeds(channel_id: str, feed_type: str = "all") -> dict[str, str]:
+    """Return official YouTube feed URLs without duplicating identical links."""
+    youtube_feed = build_youtube_feed_url(channel_id, feed_type="all")
+    feeds = {
+        "youtube": youtube_feed,
+        "selected": youtube_feed,
+    }
+    return feeds
+
 def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = "http://localhost:8080", feed_type: str = "all") -> tuple:
     """Get RSS feed data for a YouTube channel.
     
-    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints)
+    Returns: (youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, official_feeds)
     """
     channel_id, channel_name = extract_channel_id(url)
     
     # YouTube RSS URL (supports hidden filtered variants for shorts/live)
-    youtube_rss = build_youtube_feed_url(channel_id, feed_type=feed_type)
+    official_feeds = build_official_feeds(channel_id, feed_type=feed_type)
+    youtube_rss = official_feeds["selected"]
     
     # Try to get videos from the selected YouTube channel page
     videos = get_channel_videos(channel_id, feed_type=feed_type)
@@ -337,7 +349,7 @@ def get_rss_feed(url: str, include_api_endpoints: bool = False, base_url: str = 
             "live_feed": f"{base_url.rstrip('/')}/feed/live/{encoded_url}",
         }
 
-    return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints
+    return youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, official_feeds
 
 
 def main():
@@ -383,7 +395,7 @@ Supported URL types:
         url = "https://" + url
     
     try:
-        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints = get_rss_feed(
+        youtube_rss, channel_id, channel_name, atom_feed, video_count, invidious_rss, api_endpoints, official_feeds = get_rss_feed(
             url,
             include_api_endpoints=args.include_api_endpoints,
             base_url=args.base_url

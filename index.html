@@ -267,11 +267,29 @@
                         label.className = 'feed-label';
                         label.textContent = 'Official YouTube Feeds:';
                         officialBox.appendChild(label);
-                        ['selected','all','videos','shorts','live'].forEach((key) => {
-                            if (!data.official_feeds[key]) return;
+                        const seenOfficialUrls = new Set();
+                        Object.entries(data.official_feeds).forEach(([key, value]) => {
+                            if (!value || seenOfficialUrls.has(value)) return;
+                            seenOfficialUrls.add(value);
                             const row = document.createElement('div');
-                            row.className = 'feed-link';
-                            row.textContent = `${key}: ${data.official_feeds[key]}`;
+                            row.className = 'feed-row';
+
+                            const feedLabel = document.createElement('div');
+                            feedLabel.className = 'feed-label';
+                            feedLabel.textContent = `Official (${key}):`;
+                            row.appendChild(feedLabel);
+
+                            const feedLink = document.createElement('div');
+                            feedLink.className = 'feed-link';
+                            feedLink.textContent = value;
+                            row.appendChild(feedLink);
+
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.textContent = `Copy ${key} RSS`;
+                            copyBtn.addEventListener('click', () => copyText(value));
+                            row.appendChild(copyBtn);
+
                             officialBox.appendChild(row);
                         });
                         resultDiv.appendChild(officialBox);
