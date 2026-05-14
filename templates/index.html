@@ -218,7 +218,14 @@
                     
                     if (data.official_feeds) {
                         html += '<div class="atom-output"><div class="feed-label">Official YouTube Feeds:</div>';
-                        ['selected','all','videos','shorts','live'].forEach(function(k){ if (data.official_feeds[k]) { html += '<div class="feed-link">' + k + ': ' + data.official_feeds[k] + '</div>'; }});
+                        ['selected','all','videos','shorts','live'].forEach(function(k){
+                            if (!data.official_feeds[k]) return;
+                            html += '<div class="feed-row">';
+                            html += '<div class="feed-label">Official (' + k + '):</div>';
+                            html += '<div class="feed-link">' + data.official_feeds[k] + '</div>';
+                            html += '<button class="copy-btn" data-encoded="' + encodeURIComponent(data.official_feeds[k]) + '">Copy ' + k + ' RSS</button>';
+                            html += '</div>';
+                        });
                         html += '</div>';
                     }
 
