@@ -88,11 +88,27 @@ npm start "https://www.youtube.com/@LinusTechTips"
 
 ---
 
-### `/feed/<channel_url>` (GET)
+### `/feed/<type>/<channel_url>` (GET)
 
 ### Get RSS feed via URL path
 
 Access a YouTube channel's RSS feed by passing the channel URL in the path.
+
+Supported feed types:
+
+- `all` (existing combined behavior)
+- `videos` (regular videos tab)
+- `shorts` (shorts tab)
+- `live` (live/streams tab)
+
+Endpoint examples:
+
+```text
+/feed/all/:channel
+/feed/videos/:channel
+/feed/shorts/:channel
+/feed/live/:channel
+```
 
 **Important:** The `channel_url` parameter must be URL-encoded (percent-encoded) to avoid 404 errors.
 
@@ -105,13 +121,13 @@ const encodedUrl = encodeURIComponent(channelUrl);
 // Result: https%3A%2F%2Fwww.youtube.com%2Fchannel%2FUCXuqSBlHAE6Xw-yeJA0Tunw
 
 // Use in request
-fetch(`/feed/${encodedUrl}`)
+fetch(`/feed/videos/${encodedUrl}`)
 ```
 
 **Alternative (recommended):** Use query parameters to avoid encoding issues:
 
 ```bash
-/feed?channel_url=https://www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw
+/feed/all/https%3A%2F%2Fwww.youtube.com%2Fchannel%2FUCXuqSBlHAE6Xw-yeJA0Tunw
 ```
 
 ---
