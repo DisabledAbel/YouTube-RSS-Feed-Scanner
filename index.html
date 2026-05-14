@@ -251,13 +251,13 @@
 
                     const feedLink = document.createElement('div');
                     feedLink.className = 'feed-link';
-                    feedLink.textContent = selectedFeedUrl;
+                    feedLink.textContent = (data.selected_feed || data.youtube_rss);
                     feedRow.appendChild(feedLink);
 
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'copy-btn';
                     copyBtn.textContent = 'Copy Selected RSS';
-                    copyBtn.addEventListener('click', () => copyText(selectedFeedUrl));
+                    copyBtn.addEventListener('click', () => copyText((data.selected_feed || data.youtube_rss)));
                     feedRow.appendChild(copyBtn);
                     resultDiv.appendChild(feedRow);
 
