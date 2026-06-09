@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 import json
+import api.monitoring_utils as monitoring_utils
 
 app = Flask(__name__, template_folder='api')
 cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
@@ -19,6 +20,52 @@ cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT':
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
+
+
+@app.route('/api/monitor', methods=['GET', 'POST'])
+def api_monitor():
+    """API endpoint for monitoring feed health and status."""
+    url = request.args.get('url')
+    data = request.get_json(silent=True) or {}
+
+    if not url:
+        url = data.get('url')
+
+    if not url:
+        return jsonify({'error': 'Missing url parameter'}), 400
+
+    if not url.startswith('http'):
+        url = 'https://' + url
+
+    # 1. Fetch feed
+    fetch_result = monitoring_utils.fetch_feed(url)
+    content, response_time, fetch_error, status_code = fetch_result
+
+    # 2. Parse feed
+    parsed_feed = monitoring_utils.parse_xml(content)
+
+    # 3. Get latest timestamp
+    latest_iso = monitoring_utils.get_latest_timestamp(parsed_feed)
+    relative_time = monitoring_utils.get_relative_time(latest_iso)
+
+    # 4. Calculate health and score
+    status, reason, score = monitoring_utils.calculate_health_and_score(fetch_result, parsed_feed, latest_iso)
+
+    response_data = {
+        "feedUrl": url,
+        "responseTimeMs": response_time,
+        "score": score,
+        "health": {
+            "status": status,
+            "reason": reason
+        },
+        "lastUpdated": {
+            "iso": latest_iso,
+            "relative": relative_time
+        } if latest_iso else None
+    }
+
+    return jsonify(response_data)
 
 
 @app.route('/api/feed', methods=['GET', 'POST'])

@@ -72,6 +72,37 @@ npm start
 ```
 ---
 
+### `/api/monitor` (GET or POST)
+
+Advanced feed monitoring with health checks and scoring.
+
+**Parameters:**
+- `url`: The RSS feed URL to monitor.
+
+**Example Request:**
+```bash
+curl "https://your-domain.com/api/monitor?url=https://www.youtube.com/feeds/videos.xml?channel_id=UC123"
+```
+
+**Example Response:**
+```json
+{
+  "feedUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UC123",
+  "responseTimeMs": 421,
+  "score": 92,
+  "health": {
+    "status": "healthy",
+    "reason": null
+  },
+  "lastUpdated": {
+    "iso": "2026-06-08T10:30:00Z",
+    "relative": "3 hours ago"
+  }
+}
+```
+
+---
+
 ### `/api/feed` (GET or POST)
 
 ### Scan a YouTube channel
