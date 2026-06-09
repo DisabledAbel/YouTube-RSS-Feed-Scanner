@@ -95,7 +95,7 @@ curl "https://your-domain.com/api/monitor?url=https://www.youtube.com/feeds/vide
     "reason": null
   },
   "lastUpdated": {
-    "iso": "2026-06-08T10:30:00Z",
+    "iso": "2026-06-08T10:30:00+00:00",
     "relative": "3 hours ago"
   }
 }

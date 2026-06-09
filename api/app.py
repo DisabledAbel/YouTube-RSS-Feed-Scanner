@@ -26,7 +26,9 @@ def index():
 def api_monitor():
     """API endpoint for monitoring feed health and status."""
     url = request.args.get('url')
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
 
     if not url:
         url = data.get('url')
@@ -73,10 +75,12 @@ def api_feed():
     """API endpoint for getting feed data."""
     # Try query parameters first, then fall back to JSON body
     url = request.args.get('url')
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
 
     if not url:
-        if not data or 'url' not in data:
+        if 'url' not in data:
             return jsonify({
                 'error': 'Missing url parameter',
                 'usage': {
