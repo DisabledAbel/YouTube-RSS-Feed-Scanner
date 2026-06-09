@@ -1,19 +1,49 @@
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 import socket
-import xml.etree.ElementTree as ET
+import ipaddress
+import defusedxml.ElementTree as ET
 from datetime import datetime, timezone
 
-def parse_xml(content):
+def is_safe_url(url):
+    """
+    Validate URL to prevent SSRF.
+    """
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in ('http', 'https'):
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        # Resolve hostname to IPs
+        addr_info = socket.getaddrinfo(hostname, None)
+        for family, _, _, _, sockaddr in addr_info:
+            ip_str = sockaddr[0]
+            ip = ipaddress.ip_address(ip_str)
+
+            if ip.is_loopback or ip.is_private or ip.is_link_local or ip.is_multicast:
+                return False
+            if hasattr(ip, 'is_global') and not ip.is_global:
+                return False
+
+        return True
+    except Exception:
+        return False
+
+def parse_xml(content_bytes):
     """
     Parse XML content and extract feed info.
     Returns: { 'title': str, 'updated': str, 'items': [ { 'title': str, 'pubDate': str, 'updated': str } ] } or None
     """
-    if not content:
+    if not content_bytes:
         return None
     try:
-        root = ET.fromstring(content)
+        root = ET.fromstring(content_bytes)
 
         # Atom feed
         if root.tag.endswith('feed'):
@@ -210,9 +240,13 @@ def calculate_health_and_score(fetch_result, parsed_feed, latest_timestamp):
 def fetch_feed(url, timeout=10):
     """
     Fetch URL content and measure response time.
-    Returns: (content, response_time_ms, error_reason, status_code)
+    Returns: (content_bytes, response_time_ms, error_reason, status_code)
     """
     start_time = time.time()
+
+    if not is_safe_url(url):
+        return None, 0, "Disallowed URL", None
+
     headers = {
         'User-Agent': 'YouTube RSS Monitor/1.0',
     }
@@ -220,7 +254,7 @@ def fetch_feed(url, timeout=10):
 
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
-            content = response.read().decode('utf-8')
+            content = response.read()
             duration = int((time.time() - start_time) * 1000)
             return content, duration, None, response.status
     except urllib.error.HTTPError as e:
