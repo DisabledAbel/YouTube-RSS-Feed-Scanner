@@ -238,13 +238,6 @@
                     }
                     
                     resultDiv.innerHTML = html;
-
-                    // Attach event listeners to copy buttons
-                    resultDiv.querySelectorAll('.copy-btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            copyEncodedText(this.dataset.encoded);
-                        });
-                    });
                 }
             } catch (e) {
                 resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
@@ -257,6 +250,16 @@
         
         document.getElementById('channelUrl').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') getFeed();
+        });
+
+        // Event delegation for dynamically added copy buttons
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('copy-btn')) {
+                const encoded = e.target.getAttribute('data-encoded');
+                if (encoded) {
+                    copyEncodedText(encoded);
+                }
+            }
         });
     </script>
 </body>

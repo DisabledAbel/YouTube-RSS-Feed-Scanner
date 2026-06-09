@@ -220,7 +220,7 @@
                     
                     html += '<div class="feed-row"><div class="feed-label">Selected RSS Feed:</div>';
                     html += '<div class="feed-link">' + (data.selected_feed || data.youtube_rss) + '</div>';
-                    html += '<button class="copy-btn" onclick="copyEncodedText(\'' + encodeURIComponent((data.selected_feed || data.youtube_rss)) + '\')">Copy Selected RSS</button></div>';
+                    html += '<button class="copy-btn" data-encoded="' + encodeURIComponent((data.selected_feed || data.youtube_rss)) + '">Copy Selected RSS</button></div>';
                     
                     if (data.official_feeds) {
                         html += '<div class="atom-output"><div class="feed-label">Official YouTube Feeds:</div>';

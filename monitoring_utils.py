@@ -28,8 +28,6 @@ def is_safe_url(url):
 
             if ip.is_loopback or ip.is_private or ip.is_link_local or ip.is_multicast:
                 return False
-            if hasattr(ip, 'is_global') and not ip.is_global:
-                return False
 
         return True
     except Exception:

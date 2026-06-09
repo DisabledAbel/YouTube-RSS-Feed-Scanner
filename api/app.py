@@ -11,7 +11,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 import json
-import api.monitoring_utils as monitoring_utils
+import monitoring_utils
 
 app = Flask(__name__, template_folder='api')
 cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
