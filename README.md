@@ -122,7 +122,7 @@ curl "https://your-domain.com/api/monitor?url=https://www.youtube.com/feeds/vide
 ### Scan a YouTube channel
 
 ```bash
-npm start "https://www.youtube.com/@LinusTechTips"
+npm start -- "https://www.youtube.com/@LinusTechTips"
 ```
 
 ### GET endpoint (works directly in browser)
@@ -180,7 +180,7 @@ fetch(`/feed/videos/${encodedUrl}`)
 ### Scan a playlist
 
 ```bash
-npm start "https://www.youtube.com/playlist?list=PLxxxxxxxx"
+npm start -- "https://www.youtube.com/playlist?list=PLxxxxxxxx"
 ```
 
 ---
@@ -188,7 +188,7 @@ npm start "https://www.youtube.com/playlist?list=PLxxxxxxxx"
 ### Output JSON
 
 ```bash
-npm start --json
+npm start -- --json
 ```
 
 ### Include API endpoints in terminal output
