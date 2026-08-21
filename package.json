@@ -2,10 +2,9 @@
   "name": "youtube-rss-feed-scanner",
   "version": "1.0.0",
   "description": "YouTube RSS Feed Scanner - Generate RSS feeds for channels, handles, IDs, and playlists",
-  "main": "api/app.py",
   "scripts": {
     "start": "node start.js",
-    "postinstall": "pip install -r requirements.txt || pip3 install -r requirements.txt || true"
+    "postinstall": "python3 -m pip install -r requirements.txt || python -m pip install -r requirements.txt"
   },
   "keywords": [
     "youtube",

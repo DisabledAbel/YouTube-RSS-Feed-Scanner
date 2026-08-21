@@ -17,12 +17,15 @@ if (args.length === 0) {
 }
 
 function runProcess(cmd) {
+  let settled = false;
   const child = spawn(cmd, [scriptToRun, ...scriptArgs], {
     stdio: 'inherit',
     env: process.env
   });
 
   child.on('error', (err) => {
+    if (settled) return;
+    settled = true;
     if (err.code === 'ENOENT' && cmd === 'python3') {
       runProcess('python');
     } else {
@@ -32,6 +35,8 @@ function runProcess(cmd) {
   });
 
   child.on('exit', (code, signal) => {
+    if (settled) return;
+    settled = true;
     if (signal) {
       process.kill(process.pid, signal);
     } else {
