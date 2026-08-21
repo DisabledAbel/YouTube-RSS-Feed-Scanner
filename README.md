@@ -59,6 +59,12 @@ cd YouTube-RSS-Feed-Scanner
 
 ## 3. Install dependencies
 
+### Option A: Using Python (Recommended)
+```bash
+pip install -r requirements.txt
+```
+
+### Option B: Using npm
 ```bash
 npm install
 ```
@@ -67,6 +73,14 @@ npm install
 
 ## 4. Start the project
 
+### Option A: Using Python
+Start local web server:
+```bash
+python api/app.py
+```
+
+### Option B: Using npm
+Start local web server:
 ```bash
 npm start
 ```
